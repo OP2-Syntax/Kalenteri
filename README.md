@@ -1,11 +1,11 @@
 # Syntax
 
 # Jäsenet:
-- Joel Regner
-- Markus Ovaska
-- Andrey Khoroshev
-- Teemu Romppanen
-- Anton Mattila
+- Joel Regner [JoelRegner](https://github.com/JoelRegner)
+- Markus Ovaska [Markus-Ovaska](https://github.com/Markus-Ovaska)
+- Andrey Khoroshev [AndreyKhoroshev](https://github.com/AndreyKhoroshev)
+- Teemu Romppanen [teemarom](https://github.com/teemarom)
+- Anton Mattila [antonmattila](https://github.com/antonmattila)
 
 
 # Kalenteri sovellus.
