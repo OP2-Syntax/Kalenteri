@@ -1,11 +1,11 @@
 # Syntax
 
 # Jäsenet:
-Joel Regner
-Markus Ovaska
-Andrey Khoroshev
-Teemu Romppanen
-Anton Mattila
+- Joel Regner
+- Markus Ovaska
+- Andrey Khoroshev
+- Teemu Romppanen
+- Anton Mattila
 
 
 # Kalenteri sovellus.
@@ -13,14 +13,14 @@ Projektin tarkoituksena on helpottaa omien menojen suunnittelua ja ratkaisemaan 
 
 
  # Projektin toiminnallisuudet.
-•	Lisätä, Poistaa ja Muokata tapahtumia.
-•	Mahdollisuus laittaa ToDo lista, joka sitten lisätään automaattisesti kalenteriin.
-•	Henkilökohtaisten tunnuksien tekeminen.
-•	Voi kutsua muita käyttäjiä omiin tapahtumiin tai järjestää tapahtuman, joka näkyy kaikille ja näyttää kaikki osallistujat.
+- •	Lisätä, Poistaa ja Muokata tapahtumia.
+- •	Mahdollisuus laittaa ToDo lista, joka sitten lisätään automaattisesti kalenteriin.
+- •	Henkilökohtaisten tunnuksien tekeminen.
+- •	Voi kutsua muita käyttäjiä omiin tapahtumiin tai järjestää tapahtuman, joka näkyy kaikille ja näyttää kaikki osallistujat.
 
 # Käytetyt teknologiat
-• Springboot
-• React
+- • Springboot
+- • React
 
 # Backlog
 [Link to Backlog](https://github.com/orgs/OP2-Syntax/projects/1)
