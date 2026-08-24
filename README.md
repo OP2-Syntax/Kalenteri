@@ -23,4 +23,4 @@ Projektin tarkoituksena on helpottaa omien menojen suunnittelua ja ratkaisemaan 
 • React
 
 # Backlog
-[Link Text](https://github.com/orgs/OP2-Syntax/projects/1)
+[Link to Backlog](https://github.com/orgs/OP2-Syntax/projects/1)
