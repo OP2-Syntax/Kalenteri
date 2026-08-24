@@ -17,3 +17,7 @@ Projektin tarkoituksena on helpottaa omien menojen suunnittelua ja ratkaisemaan 
 •	Mahdollisuus laittaa ToDo lista, joka sitten lisätään automaattisesti kalenteriin.
 •	Henkilökohtaisten tunnuksien tekeminen.
 •	Voi kutsua muita käyttäjiä omiin tapahtumiin tai järjestää tapahtuman, joka näkyy kaikille ja näyttää kaikki osallistujat.
+
+# Käytetyt teknologiat
+• Springboot
+• React
