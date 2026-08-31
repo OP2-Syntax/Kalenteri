@@ -21,6 +21,8 @@ Projektin tarkoituksena on helpottaa omien menojen suunnittelua ja ratkaisemaan 
 # Käytetyt teknologiat
 - Springboot
 - React
+- mySQL
+- Joku pilvi sovellus kuten render
 
 # Backlog
 [Link to Backlog](https://github.com/orgs/OP2-Syntax/projects/1)
