@@ -26,8 +26,13 @@ const initialEvents: SchedulerEvent[] = [
 ];
 
 const defaultPreferences = {
-
+  ampm: false,
+  toggleAmpm: false,
+  showWeekNumber: true,
+  weekStartsOn: 1,
+  showEmptyDaysInAgenda: false,
 }
+
 
 function App() {
   const [events, setEvents] = React.useState<SchedulerEvent[]>(initialEvents);
@@ -42,7 +47,16 @@ function App() {
         events={events}
         onEventsChange={setEvents}
         defaultVisibleDate={new Date(2026, 8, 15)}
+        defaultView='month'
         defaultPreferences={defaultPreferences}
+        preferencesMenuConfig={{
+          toggleAmpm: false,
+          toggleEmptyDaysInAgenda: true,
+          toggleWeekendVisibility: false,
+          toggleWeekNumberVisibility: false,
+
+          
+        }}
       />
     </div>
   )
