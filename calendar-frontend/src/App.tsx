@@ -3,28 +3,6 @@ import { EventCalendar } from '@mui/x-scheduler/event-calendar';
 import type { SchedulerEvent } from '@mui/x-scheduler/models';
 import React from 'react';
 
-//testidata kalenteriin
-const initialEvents: SchedulerEvent[] = [
-  {
-    id: 1,
-    title: 'Team Meeting',
-    start: '2026-09-15T10:00:00',
-    end: '2026-09-15T11:00:00',
-  },
-  {
-    id: 2,
-    title: 'Project Review',
-    start: '2026-09-16T14:00:00',
-    end: '2026-09-16T15:30:00',
-  },
-    {
-    id: 3,
-    title: 'Daily Scrum',
-    start: '2026-09-23T09:00:00',
-    end: '2026-09-23T09:30:00',
-  }
-];
-
 const defaultPreferences = {
   ampm: false,
   toggleAmpm: false,
@@ -33,29 +11,64 @@ const defaultPreferences = {
   showEmptyDaysInAgenda: false,
 }
 
+// Backendin palauttaman tapahtuman muoto (Event.java:n kentät)
+interface BackendEvent {
+  id: number;
+  title: string;
+  description: string;
+  startTime: string;
+  endTime: string;
+}
 
 function App() {
-  const [events, setEvents] = React.useState<SchedulerEvent[]>(initialEvents);
+  const [events, setEvents] = React.useState<SchedulerEvent[]>([]);
+  const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState<string | null>(null);
 
+  // Haetaan tapahtumat backendistä komponentin latautuessa
+  React.useEffect(() => {
+    fetch('http://localhost:8080/api/events')
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error('Palvelin vastasi virheellä: ' + response.status);
+        }
+        return response.json();
+      })
+      .then((data: BackendEvent[]) => {
+        // muunnetaan backendin muoto SchedulerEventiksi
+        const mapped: SchedulerEvent[] = data.map((e) => ({
+          id: e.id,
+          title: e.title,
+          start: e.startTime,
+          end: e.endTime,
+        }));
+        setEvents(mapped);
+        setLoading(false);
+      })
+      .catch((err) => {
+        setError(err.message);
+        setLoading(false);
+      });
+  }, []);
+
+  if (loading) return <p>Ladataan tapahtumia...</p>;
+  if (error) return <p>Virhe tapahtumien haussa: {error}</p>;
 
   return (
     <div style={{ height: 600, width: '100%' }}>
       <h1>Kalenteri</h1>
 
-      {/*mui scheduler*/}
-      <EventCalendar 
+      {/* mui scheduler */}
+      <EventCalendar
         events={events}
         onEventsChange={setEvents}
         defaultVisibleDate={new Date(2026, 8, 15)}
         defaultView='month'
-        defaultPreferences={defaultPreferences}
         preferencesMenuConfig={{
           toggleAmpm: false,
           toggleEmptyDaysInAgenda: true,
           toggleWeekendVisibility: false,
           toggleWeekNumberVisibility: false,
-
-          
         }}
       />
     </div>
