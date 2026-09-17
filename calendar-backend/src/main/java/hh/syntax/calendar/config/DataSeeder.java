@@ -33,7 +33,7 @@ public class DataSeeder implements CommandLineRunner {
             testUser.setPassword("salasana123"); // huom: ei vielä hashattu, korjataan myöhemmin Securityn kanssa
             userRepository.save(testUser);
 
-            // luodaan muutama testitapahtuma tälle käyttäjälle
+            // tapahtuma 1
             Event event1 = new Event();
             event1.setTitle("Tiimipalaveri");
             event1.setDescription("Viikoittainen tiimipalaveri");
@@ -42,6 +42,7 @@ public class DataSeeder implements CommandLineRunner {
             event1.setOwner(testUser);
             eventRepository.save(event1);
 
+            // tapahtuma 2
             Event event2 = new Event();
             event2.setTitle("Lääkärikäynti");
             event2.setDescription("Vuosittainen tarkastus");
@@ -50,10 +51,12 @@ public class DataSeeder implements CommandLineRunner {
             event2.setOwner(testUser);
             eventRepository.save(event2);
 
+            // tapahtuma 3 (endTime lisätty, ettei frontend kaadu null-arvoon)
             Event event3 = new Event();
             event3.setTitle("Syntymäpäivät");
             event3.setDescription("Kaverin synttärit");
             event3.setStartTime(LocalDateTime.now().plusDays(5).withHour(18).withMinute(0));
+            event3.setEndTime(LocalDateTime.now().plusDays(5).withHour(20).withMinute(0));
             event3.setOwner(testUser);
             eventRepository.save(event3);
 
