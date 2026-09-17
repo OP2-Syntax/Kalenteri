@@ -29,7 +29,7 @@ const defaultPreferences = {
   ampm: false,
   toggleAmpm: false,
   showWeekNumber: true,
-  weekStartsOn: 1,
+  weekStartsOn: 1 as const,
   showEmptyDaysInAgenda: false,
 }
 
@@ -48,6 +48,7 @@ function App() {
         onEventsChange={setEvents}
         defaultVisibleDate={new Date(2026, 8, 15)}
         defaultView='month'
+        areEventsDraggable={false}
         defaultPreferences={defaultPreferences}
         preferencesMenuConfig={{
           toggleAmpm: false,
