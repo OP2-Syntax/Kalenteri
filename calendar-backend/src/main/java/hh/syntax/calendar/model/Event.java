@@ -1,5 +1,6 @@
 package hh.syntax.calendar.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.time.LocalDateTime;
@@ -23,6 +24,8 @@ public class Event {
 
     private LocalDateTime endTime;
 
+    // owner ei näy JSON-vastauksessa (piilotetaan käyttäjän tiedot, kuten salasana)
+    @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "owner_id", nullable = false)
     private User owner;
