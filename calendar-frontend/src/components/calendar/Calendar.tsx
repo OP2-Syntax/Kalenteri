@@ -1,6 +1,6 @@
 import { EventCalendar } from '@mui/x-scheduler/event-calendar';
 import type { SchedulerEvent } from '@mui/x-scheduler/models';
-import React, { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { getEvents } from './calendarApi';
 import { defaultPreferences, preferencesMenuConfig } from './calendarPreferences';
 
@@ -11,11 +11,11 @@ import { Button, Dialog, DialogTitle } from '@mui/material';
 
 
 function Calendar() {
-  const [events, setEvents] = React.useState<SchedulerEvent[]>([]);
-  const [loading, setLoading] = React.useState(true);
-  const [error, setError] = React.useState<string | null>(null);
+  const [events, setEvents] = useState<SchedulerEvent[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const [open, setOpen] = React.useState(false)
+  const [open, setOpen] = useState(false)
 
   const handleEventCreated = (newEvent: SchedulerEvent) => {
     setEvents((prev) => [...prev, newEvent]);
@@ -23,13 +23,14 @@ function Calendar() {
   }
 
   // Haetaan tapahtumat backendistä komponentin latautuessa
-  React.useEffect(() => {
+  useEffect(() => {
     getEvents()
       .then(setEvents)
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   }, []);
 
+  // latausviesti
   if (loading) return <p>Ladataan tapahtumia...</p>;
   if (error) return <p>Virhe tapahtumien haussa: {error}</p>;
 
@@ -37,6 +38,7 @@ function Calendar() {
     <div style={{ height: 600, width: '100%' }}>
       <h1>Kalenteri</h1>
       
+      {/*Avaa addEventFormin*/}
       <Button
         variant="contained"
         onClick={() => setOpen(true)}
@@ -52,6 +54,7 @@ function Calendar() {
         areEventsDraggable={false}
         defaultPreferences={defaultPreferences}
         preferencesMenuConfig={preferencesMenuConfig}
+        eventCreation={false}
       />
 
       <Dialog

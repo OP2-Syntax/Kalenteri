@@ -6,6 +6,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import hh.syntax.calendar.model.User;
+import hh.syntax.calendar.repository.UserRepository;
+
 import java.util.List;
 
 @RestController
@@ -14,6 +17,9 @@ public class EventController {
 
     @Autowired
     private EventRepository eventRepository;
+
+    @Autowired
+    private UserRepository userRepository;  
 
     // GET /api/events — hakee kaikki tapahtumat
     @GetMapping
@@ -32,6 +38,12 @@ public class EventController {
     // POST /api/events — luo uuden tapahtuman
     @PostMapping
     public Event createEvent(@RequestBody Event event) {
+
+        User user = userRepository.findById(1L)
+            .orElseThrow(() -> new RuntimeException("Käyttäjää ei löytynyt"));
+
+        event.setOwner(user); // asettaa ownerin tapahtumalle
+
         return eventRepository.save(event);
     }
 
