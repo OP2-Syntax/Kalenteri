@@ -9,6 +9,14 @@ interface BackendEvent {
   endTime: string;
 }
 
+interface CreateEventData {
+  title: string;
+  description: string;
+  startTime: string;
+  endTime: string;
+}
+
+//GET
 export async function getEvents(): Promise<SchedulerEvent[]> {
   const response = await fetch('http://localhost:8080/api/events');
 
@@ -28,8 +36,31 @@ export async function getEvents(): Promise<SchedulerEvent[]> {
   }));
 }
 
-// export async function createEvent() {}
 //POST
+export async function createEvent(event: CreateEventData): Promise<SchedulerEvent> {
+  const response = await fetch('http://localhost:8080/api/events', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(event),
+  });
+
+  if (!response.ok) {
+    throw new Error(
+      "Tapahtuman lisäys epäonnistui:" + response.status
+    );
+  }
+
+  const createdEvent: BackendEvent = await response.json();
+
+  return {
+    id: createdEvent.id,
+    title: createdEvent.title,
+    start: createdEvent.startTime,
+    end: createdEvent.endTime,
+  };
+}
 
 //export async function updateEvent() {}
 //PUT
