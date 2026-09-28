@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { createEvent } from './calendarApi';
 import type { SchedulerEvent } from '@mui/x-scheduler/models';
 import { Box, Button, TextField } from '@mui/material';
@@ -10,19 +10,26 @@ interface AddEventFormProps {
 
 function AddEventForm({ onCreated, onCancel }: AddEventFormProps) {
 
-    const [title, setTitle] = React.useState('');
-    const [description, setDescription] = React.useState('');
-    const [startTime, setStartTime] = React.useState('');
-    const [endTime, setEndTime] = React.useState('');
+    const [title, setTitle] = useState('');
+    const [description, setDescription] = useState('');
+    const [startDate, setStartDate] = useState('')
+    const [startTime, setStartTime] = useState('');
+    const [endDate, setEndDate] = useState('')
+    const [endTime, setEndTime] = useState('');
 
     const handleSubmit = async (e: React.FormEvent) => {
+
         e.preventDefault();
+
+        const startDateTime = `${startDate}T${startTime}`;
+        const endDateTime = `${endDate}T${endTime}`;
+
         try {
             const newEvent = await createEvent({
                 title,
                 description,
-                startTime,
-                endTime
+                startTime: startDateTime,
+                endTime: endDateTime
             });
             onCreated(newEvent);
 
@@ -68,24 +75,42 @@ function AddEventForm({ onCreated, onCancel }: AddEventFormProps) {
             </Box>
 
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <label style={{width:150}}>Start Time:</label>
+                <label style={{width:110}}>Start Time:</label>
                 <TextField
-                    type="datetime-local"
-                    value={startTime}
-                    onChange={(event) => setStartTime(event.target.value)}
+                    style={{width:150}}
+                    type="date"
+                    value={startDate}
+                    onChange={(event) => setStartDate(event.target.value)}
                     required
                     fullWidth
+                />
+
+                <TextField
+                    style={{width:120}}
+                    type='time'
+                    value={startTime}
+                    onChange={() => setStartTime(event.target.value)}
+                    required
                 />
             </Box>
 
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <label style={{width:150}}>End Time:</label>
+                <label style={{width:110}}>End Time:</label>
                 <TextField
-                    type="datetime-local"
-                    value={endTime}
-                    onChange={(event) => setEndTime(event.target.value)}
+                    style={{width:150}}
+                    type="date"
+                    value={endDate}
+                    onChange={(event) => setEndDate(event.target.value)}
                     required
                     fullWidth
+                />
+
+                <TextField
+                    style={{width:120}}
+                    type='time'
+                    value={endTime}
+                    onChange={() => setEndTime(event.target.value)}
+                    required
                 />
             </Box>
 
