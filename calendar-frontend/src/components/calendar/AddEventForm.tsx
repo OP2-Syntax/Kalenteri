@@ -36,7 +36,9 @@ function AddEventForm({ onCreated, onCancel }: AddEventFormProps) {
             setTitle("");
             setDescription("");
             setStartTime("");
+            setStartDate("")
             setEndTime("");
+            setEndDate("");
         } catch (error) {
             console.error("Tapahtuman lisääminen epöonnistui: ", error);
         }
@@ -89,7 +91,7 @@ function AddEventForm({ onCreated, onCancel }: AddEventFormProps) {
                     style={{width:120}}
                     type='time'
                     value={startTime}
-                    onChange={() => setStartTime(event.target.value)}
+                    onChange={(event) => setStartTime(event.target.value)}
                     required
                 />
             </Box>
@@ -109,7 +111,7 @@ function AddEventForm({ onCreated, onCancel }: AddEventFormProps) {
                     style={{width:120}}
                     type='time'
                     value={endTime}
-                    onChange={() => setEndTime(event.target.value)}
+                    onChange={(event) => setEndTime(event.target.value)}
                     required
                 />
             </Box>
