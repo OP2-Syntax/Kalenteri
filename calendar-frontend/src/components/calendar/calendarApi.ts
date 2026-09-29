@@ -18,7 +18,7 @@ interface CreateEventData {
 
 //GET
 export async function getEvents(): Promise<SchedulerEvent[]> {
-  const response = await fetch('http://localhost:8080/api/events');
+  const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/events`);
 
   if (!response.ok) {
     throw new Error(
@@ -38,7 +38,7 @@ export async function getEvents(): Promise<SchedulerEvent[]> {
 
 //POST
 export async function createEvent(event: CreateEventData): Promise<SchedulerEvent> {
-  const response = await fetch('http://localhost:8080/api/events', {
+  const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/events`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
