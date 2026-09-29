@@ -1,4 +1,5 @@
 import type { SchedulerEvent } from '@mui/x-scheduler/models';
+import { getToken } from '../../authApi';
 
 // Backendin palauttaman tapahtuman muoto (Event.java:n kentät)
 interface BackendEvent {
@@ -18,9 +19,17 @@ interface CreateEventData {
 
 const BACKEND_URL = 'https://kalenteri-calendar-app-backend.2.rahtiapp.fi';
 
+// lisää Authorization-headerin, jos token löytyy
+function authHeaders(): HeadersInit {
+  const token = getToken();
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
 //GET
 export async function getEvents(): Promise<SchedulerEvent[]> {
-  const response = await fetch(`${BACKEND_URL}/api/events`);
+  const response = await fetch(`${BACKEND_URL}/api/events`, {
+    headers: authHeaders(),
+  });
 
   if (!response.ok) {
     throw new Error(
@@ -44,6 +53,7 @@ export async function createEvent(event: CreateEventData): Promise<SchedulerEven
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      ...authHeaders(),
     },
     body: JSON.stringify(event),
   });

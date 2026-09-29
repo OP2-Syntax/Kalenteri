@@ -5,6 +5,7 @@ import hh.syntax.calendar.model.User;
 import hh.syntax.calendar.repository.EventRepository;
 import hh.syntax.calendar.repository.UserRepository;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -15,10 +16,12 @@ public class DataSeeder implements CommandLineRunner {
 
     private final UserRepository userRepository;
     private final EventRepository eventRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public DataSeeder(UserRepository userRepository, EventRepository eventRepository) {
+    public DataSeeder(UserRepository userRepository, EventRepository eventRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.eventRepository = eventRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
@@ -30,7 +33,7 @@ public class DataSeeder implements CommandLineRunner {
             User testUser = new User();
             testUser.setUsername("testuser");
             testUser.setEmail("test@example.com");
-            testUser.setPassword("salasana123"); // huom: ei vielä hashattu, korjataan myöhemmin Securityn kanssa
+            testUser.setPassword(passwordEncoder.encode("salasana123")); // salasana hashataan BCryptillä
             userRepository.save(testUser);
 
             // tapahtuma 1
