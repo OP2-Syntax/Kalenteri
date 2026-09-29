@@ -16,9 +16,11 @@ interface CreateEventData {
   endTime: string;
 }
 
+const BACKEND_URL = 'https://kalenteri-calendar-app-backend.2.rahtiapp.fi';
+
 //GET
 export async function getEvents(): Promise<SchedulerEvent[]> {
-  const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/events`);
+  const response = await fetch(`${BACKEND_URL}/api/events`);
 
   if (!response.ok) {
     throw new Error(
@@ -38,7 +40,7 @@ export async function getEvents(): Promise<SchedulerEvent[]> {
 
 //POST
 export async function createEvent(event: CreateEventData): Promise<SchedulerEvent> {
-  const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/events`, {
+  const response = await fetch(`${BACKEND_URL}/api/events`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
