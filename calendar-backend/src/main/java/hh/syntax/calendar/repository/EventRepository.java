@@ -6,4 +6,5 @@ import java.util.List;
 
 public interface EventRepository extends JpaRepository<Event, Long> {
     List<Event> findByOwnerId(Long ownerId);
+    List<Event> findByOwner_Username(String username);
 }

@@ -1,13 +1,12 @@
 package hh.syntax.calendar.controller;
 
 import hh.syntax.calendar.model.Event;
-import hh.syntax.calendar.repository.EventRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
 import hh.syntax.calendar.model.User;
+import hh.syntax.calendar.repository.EventRepository;
 import hh.syntax.calendar.repository.UserRepository;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -15,16 +14,24 @@ import java.util.List;
 @RequestMapping("/api/events")
 public class EventController {
 
-    @Autowired
-    private EventRepository eventRepository;
+    private final EventRepository eventRepository;
+    private final UserRepository userRepository;
 
-    @Autowired
-    private UserRepository userRepository;  
+    public EventController(EventRepository eventRepository, UserRepository userRepository) {
+        this.eventRepository = eventRepository;
+        this.userRepository = userRepository;
+    }
 
-    // GET /api/events — hakee kaikki tapahtumat
+    // hakee kirjautuneen käyttäjän Authentication-objektista
+    private User getCurrentUser(Authentication authentication) {
+        return userRepository.findByUsername(authentication.getName())
+                .orElseThrow(() -> new RuntimeException("Käyttäjää ei löytynyt"));
+    }
+
+    // GET /api/events — hakee vain kirjautuneen käyttäjän omat tapahtumat
     @GetMapping
-    public List<Event> getAllEvents() {
-        return eventRepository.findAll();
+    public List<Event> getAllEvents(Authentication authentication) {
+        return eventRepository.findByOwner_Username(authentication.getName());
     }
 
     // GET /api/events/5 — hakee yhden tapahtuman id:n perusteella
@@ -35,15 +42,11 @@ public class EventController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    // POST /api/events — luo uuden tapahtuman
+    // POST /api/events — luo uuden tapahtuman, owner asetetaan kirjautuneesta käyttäjästä
     @PostMapping
-    public Event createEvent(@RequestBody Event event) {
-
-        User user = userRepository.findById(1L)
-            .orElseThrow(() -> new RuntimeException("Käyttäjää ei löytynyt"));
-
-        event.setOwner(user); // asettaa ownerin tapahtumalle
-
+    public Event createEvent(@RequestBody Event event, Authentication authentication) {
+        User currentUser = getCurrentUser(authentication);
+        event.setOwner(currentUser);
         return eventRepository.save(event);
     }
 
