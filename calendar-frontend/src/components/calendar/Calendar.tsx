@@ -37,14 +37,14 @@ function Calendar() {
   return (
     <div style={{ height: 600, width: '100%' }}>
       <h1>Kalenteri</h1>
-      
+
       {/*Avaa addEventFormin*/}
       <Button
         variant="contained"
         onClick={() => setOpen(true)}
-        >
-          Add Event
-        </Button>
+      >
+        Add Event
+      </Button>
 
       {/* mui scheduler */}
       <EventCalendar
@@ -58,10 +58,11 @@ function Calendar() {
       />
 
       <Dialog
+        maxWidth={'lg'}
         open={open}
         onClose={() => setOpen(false)}
       >
-        <DialogTitle>Lisää tapahtuma</DialogTitle>
+        <DialogTitle>Add New Event to Calendar</DialogTitle>
         <AddEventForm
           onCreated={handleEventCreated}
           onCancel={() => setOpen(false)}
