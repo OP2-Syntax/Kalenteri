@@ -62,8 +62,19 @@ export async function createEvent(event: CreateEventData): Promise<SchedulerEven
   };
 }
 
-//export async function updateEvent() {}
 //PUT
+//export async function updateEvent() {}
 
-//export async function deleteEvent() {}
 //DELETE
+export async function deleteEvent(id:number): Promise<void> {
+  const response = await fetch(`http://localhost:8080/api/events/${id}`,
+    {
+      method: "DELETE",
+    }
+  );
+  if (!response.ok) {
+    throw new Error(
+      "Tapahtuman poisto epäonnistui: " + response.status 
+    );
+  }
+}

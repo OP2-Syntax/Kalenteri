@@ -1,7 +1,7 @@
 import { EventCalendar } from '@mui/x-scheduler/event-calendar';
 import type { SchedulerEvent } from '@mui/x-scheduler/models';
 import { useEffect, useState } from 'react';
-import { getEvents } from './calendarApi';
+import { getEvents, deleteEvent } from './calendarApi';
 import { defaultPreferences, preferencesMenuConfig } from './calendarPreferences';
 
 import AddEventForm from './AddEventForm';
@@ -21,6 +21,24 @@ function Calendar() {
     setEvents((prev) => [...prev, newEvent]);
     setOpen(false)
   }
+
+  const handleEventsChange = async (newEvents: SchedulerEvent[]) => {
+    const deletedEvent = events.find(
+      (oldEvent) => 
+        !newEvents.some((newEvent) => newEvent.id === oldEvent.id)
+    );
+
+    if (deletedEvent) {
+      try {
+        await deleteEvent(Number(deletedEvent.id));
+        setEvents(newEvents);
+      } catch (error) {
+        console.error("Tapahtuman poisto epäonnistui: ", error);
+      }
+      return;
+    }
+    setEvents(newEvents);
+  };
 
   // Haetaan tapahtumat backendistä komponentin latautuessa
   useEffect(() => {
@@ -49,7 +67,7 @@ function Calendar() {
       {/* mui scheduler */}
       <EventCalendar
         events={events}
-        onEventsChange={setEvents}
+        onEventsChange={handleEventsChange}
         defaultView='month'
         areEventsDraggable={false}
         defaultPreferences={defaultPreferences}
