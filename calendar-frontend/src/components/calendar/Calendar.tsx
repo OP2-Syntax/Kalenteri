@@ -51,6 +51,7 @@ function Calendar() {
 
       return (
         oldEvent.title !== newEvent.title ||
+        oldEvent.description !== newEvent.description ||
         oldEvent.start !== newEvent.start ||
         oldEvent.end !== newEvent.end
       );
@@ -63,7 +64,7 @@ function Calendar() {
       try {
         await updateEvent(Number(changedEvent.id), {
           title: changedEvent.title,
-          description: oldEvent?.description ?? "",
+          description: changedEvent.description ?? "",
           startTime: String(changedEvent.start),
           endTime: String(changedEvent.end)
         });
@@ -73,6 +74,7 @@ function Calendar() {
       }
       return;
     }
+    setEvents(newEvents);
   };
 
   // Haetaan tapahtumat backendistä komponentin latautuessa

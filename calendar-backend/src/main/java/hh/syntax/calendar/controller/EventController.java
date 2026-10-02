@@ -53,4 +53,19 @@ public class EventController {
         eventRepository.deleteById(id);
         return ResponseEntity.noContent().build();
     }
+
+    // PUT /api/events/5 - muokkaa tapahtumaa
+    @PutMapping("/{id}")
+    public ResponseEntity<Event> updateEvent(@PathVariable Long id, @RequestBody Event updatedEvent) {
+        return eventRepository.findById(id)
+            .map(event -> {
+                event.setTitle(updatedEvent.getTitle());
+                event.setDescription(updatedEvent.getDescription());
+                event.setStartTime(updatedEvent.getStartTime());
+                event.setEndTime(updatedEvent.getEndTime());
+
+                return ResponseEntity.ok(eventRepository.save(event));
+            })
+            .orElse(ResponseEntity.notFound().build());
+    }
 }

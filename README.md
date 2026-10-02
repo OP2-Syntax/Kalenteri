@@ -11,6 +11,10 @@
 # Kalenteri sovellus.
 Projektin tarkoituksena on helpottaa omien menojen suunnittelua ja ratkaisemaan aikataulutus ongelmia. Projekti on tarkoitettu henkilöille, jotka haluavat parantaa omaa aikatauluttamista. 
 
+# Linkit
+[Frontend](https://kalenteri-calendar-app-frontend.2.rahtiapp.fi/)
+[Backend](https://kalenteri-calendar-app-backend.2.rahtiapp.fi/)
+
 
  # Projektin toiminnallisuudet.
 -	Lisätä, Poistaa ja Muokata tapahtumia.
