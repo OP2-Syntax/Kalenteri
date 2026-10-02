@@ -1,7 +1,7 @@
 import { EventCalendar } from '@mui/x-scheduler/event-calendar';
-import type { SchedulerEvent } from '@mui/x-scheduler/models';
+//import type { SchedulerEvent } from '@mui/x-scheduler/models';
 import { useEffect, useState } from 'react';
-import { getEvents, deleteEvent, updateEvent } from './calendarApi';
+import { getEvents, deleteEvent, updateEvent, type CalendarEvent } from './calendarApi';
 import { defaultPreferences, preferencesMenuConfig } from './calendarPreferences';
 
 import AddEventForm from './AddEventForm';
@@ -11,21 +11,22 @@ import { Button, Dialog, DialogTitle } from '@mui/material';
 
 
 function Calendar() {
-  const [events, setEvents] = useState<SchedulerEvent[]>([]);
+
+  const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const [open, setOpen] = useState(false)
 
-  const handleEventCreated = (newEvent: SchedulerEvent) => {
+  const handleEventCreated = (newEvent: CalendarEvent) => {
     setEvents((prev) => [...prev, newEvent]);
-    setOpen(false)
-  }
+    setOpen(false);
+  };
 
-  const handleEventsChange = async (newEvents: SchedulerEvent[]) => {
+  const handleEventsChange = async (newEvents: CalendarEvent[]) => {
     // Tapahtuman poiston tarkistus
     const deletedEvent = events.find(
-      (oldEvent) => 
+      (oldEvent) =>
         !newEvents.some((newEvent) => newEvent.id === oldEvent.id)
     );
 
@@ -56,10 +57,13 @@ function Calendar() {
     });
 
     if (changedEvent) {
+      const oldEvent = events.find(
+        (event) => event.id === changedEvent.id
+      );
       try {
-        await updateEvent(Number(changedEvent.id),{
+        await updateEvent(Number(changedEvent.id), {
           title: changedEvent.title,
-          description:"",
+          description: oldEvent?.description ?? "",
           startTime: String(changedEvent.start),
           endTime: String(changedEvent.end)
         });
@@ -69,7 +73,6 @@ function Calendar() {
       }
       return;
     }
-    setEvents(newEvents);
   };
 
   // Haetaan tapahtumat backendistä komponentin latautuessa

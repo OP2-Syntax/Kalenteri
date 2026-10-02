@@ -16,8 +16,12 @@ interface CreateEventData {
   endTime: string;
 }
 
+export interface CalendarEvent extends SchedulerEvent {
+  description: string;
+}
+
 //GET
-export async function getEvents(): Promise<SchedulerEvent[]> {
+export async function getEvents(): Promise<CalendarEvent[]> {
   const response = await fetch('http://localhost:8080/api/events');
 
   if (!response.ok) {
@@ -31,13 +35,14 @@ export async function getEvents(): Promise<SchedulerEvent[]> {
    return data.map((event) => ({
     id: event.id,
     title: event.title,
+    description: event.description,
     start: event.startTime,
     end: event.endTime,
   }));
 }
 
 //POST
-export async function createEvent(event: CreateEventData): Promise<SchedulerEvent> {
+export async function createEvent(event: CreateEventData): Promise<CalendarEvent> {
   const response = await fetch('http://localhost:8080/api/events', {
     method: 'POST',
     headers: {
@@ -57,6 +62,7 @@ export async function createEvent(event: CreateEventData): Promise<SchedulerEven
   return {
     id: createdEvent.id,
     title: createdEvent.title,
+    description: createdEvent.description,
     start: createdEvent.startTime,
     end: createdEvent.endTime,
   };
@@ -71,7 +77,7 @@ export async function updateEvent(
     startTime: string;
     endTime: string;
   }
-): Promise<SchedulerEvent> {
+): Promise<CalendarEvent> {
   const response = await fetch(`http://localhost:8080/api/events/${id}`,
     {
       method: "PUT",
@@ -91,6 +97,7 @@ export async function updateEvent(
   return {
     id: updatedEvent.id,
     title: updatedEvent.title,
+    description: updatedEvent.description,
     start: updatedEvent.startTime,
     end: updatedEvent.endTime,
   };
