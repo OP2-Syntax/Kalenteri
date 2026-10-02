@@ -1,4 +1,5 @@
 import type { SchedulerEvent } from '@mui/x-scheduler/models';
+import { getToken } from '../../authApi';
 
 // Backendin palauttaman tapahtuman muoto (Event.java:n kentät)
 interface BackendEvent {
@@ -16,13 +17,23 @@ interface CreateEventData {
   endTime: string;
 }
 
+const BACKEND_URL = 'https://kalenteri-calendar-app-backend.2.rahtiapp.fi';
+
 export interface CalendarEvent extends SchedulerEvent {
   description: string;
+}
+  
+// lisää Authorization-headerin, jos token löytyy
+function authHeaders(): HeadersInit {
+  const token = getToken();
+  return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
 //GET
 export async function getEvents(): Promise<CalendarEvent[]> {
-  const response = await fetch('http://localhost:8080/api/events');
+  const response = await fetch(`${BACKEND_URL}/api/events`, {
+    headers: authHeaders(),
+  });
 
   if (!response.ok) {
     throw new Error(
@@ -43,10 +54,11 @@ export async function getEvents(): Promise<CalendarEvent[]> {
 
 //POST
 export async function createEvent(event: CreateEventData): Promise<CalendarEvent> {
-  const response = await fetch('http://localhost:8080/api/events', {
+  const response = await fetch(`${BACKEND_URL}/api/events`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      ...authHeaders(),
     },
     body: JSON.stringify(event),
   });
@@ -78,7 +90,7 @@ export async function updateEvent(
     endTime: string;
   }
 ): Promise<CalendarEvent> {
-  const response = await fetch(`http://localhost:8080/api/events/${id}`,
+  const response = await fetch(``${BACKEND_URL}/api/events/${id}`,
     {
       method: "PUT",
       headers: {
@@ -105,7 +117,7 @@ export async function updateEvent(
 
 //DELETE
 export async function deleteEvent(id:number): Promise<void> {
-  const response = await fetch(`http://localhost:8080/api/events/${id}`,
+  const response = await fetch(`${BACKEND_URL}/api/events/${id}`,
     {
       method: "DELETE",
     }
