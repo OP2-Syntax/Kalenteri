@@ -90,7 +90,7 @@ export async function updateEvent(
     endTime: string;
   }
 ): Promise<CalendarEvent> {
-  const response = await fetch(``${BACKEND_URL}/api/events/${id}`,
+  const response = await fetch(`${BACKEND_URL}/api/events/${id}`,
     {
       method: "PUT",
       headers: {

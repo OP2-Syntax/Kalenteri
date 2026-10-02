@@ -12,12 +12,12 @@
 Projektin tarkoituksena on helpottaa omien menojen suunnittelua ja ratkaisemaan aikataulutus ongelmia. Projekti on tarkoitettu henkilöille, jotka haluavat parantaa omaa aikatauluttamista. 
 
 # Linkit
-[Frontend](https://kalenteri-calendar-app-frontend.2.rahtiapp.fi/)
-[Backend](https://kalenteri-calendar-app-backend.2.rahtiapp.fi/)
+- [Frontend](https://kalenteri-calendar-app-frontend.2.rahtiapp.fi/)
+- [Backend](https://kalenteri-calendar-app-backend.2.rahtiapp.fi/)
 
 
  # Projektin toiminnallisuudet.
--	Lisätä, Poistaa ja Muokata tapahtumia.
+- Lisätä, Poistaa ja Muokata tapahtumia.
 - Mahdollisuus laittaa ToDo lista, joka sitten lisätään automaattisesti kalenteriin.
 - Henkilökohtaisten tunnuksien tekeminen.
 - Voi kutsua muita käyttäjiä omiin tapahtumiin tai järjestää tapahtuman, joka näkyy kaikille ja näyttää kaikki osallistujat.
