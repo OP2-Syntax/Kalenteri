@@ -1,7 +1,7 @@
 import { EventCalendar } from '@mui/x-scheduler/event-calendar';
-import type { SchedulerEvent } from '@mui/x-scheduler/models';
+//import type { SchedulerEvent } from '@mui/x-scheduler/models';
 import { useEffect, useState } from 'react';
-import { getEvents } from './calendarApi';
+import { getEvents, deleteEvent, updateEvent, type CalendarEvent } from './calendarApi';
 import { defaultPreferences, preferencesMenuConfig } from './calendarPreferences';
 
 import AddEventForm from './AddEventForm';
@@ -11,16 +11,71 @@ import { Button, Dialog, DialogTitle } from '@mui/material';
 
 
 function Calendar() {
-  const [events, setEvents] = useState<SchedulerEvent[]>([]);
+
+  const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const [open, setOpen] = useState(false)
 
-  const handleEventCreated = (newEvent: SchedulerEvent) => {
+  const handleEventCreated = (newEvent: CalendarEvent) => {
     setEvents((prev) => [...prev, newEvent]);
-    setOpen(false)
-  }
+    setOpen(false);
+  };
+
+  const handleEventsChange = async (newEvents: CalendarEvent[]) => {
+    // Tapahtuman poiston tarkistus
+    const deletedEvent = events.find(
+      (oldEvent) =>
+        !newEvents.some((newEvent) => newEvent.id === oldEvent.id)
+    );
+
+    if (deletedEvent) {
+      try {
+        await deleteEvent(Number(deletedEvent.id));
+        setEvents(newEvents);
+      } catch (error) {
+        console.error("Tapahtuman poisto epäonnistui: ", error);
+      }
+      return;
+    }
+    // Muuttuneen tapahtuman tarkistus
+    const changedEvent = newEvents.find((newEvent) => {
+      const oldEvent = events.find(
+        (event) => event.id === newEvent.id
+      );
+
+      if (!oldEvent) {
+        return false;
+      }
+
+      return (
+        oldEvent.title !== newEvent.title ||
+        oldEvent.description !== newEvent.description ||
+        oldEvent.start !== newEvent.start ||
+        oldEvent.end !== newEvent.end
+      );
+    });
+
+    if (changedEvent) {
+      const oldEvent = events.find(
+        (event) => event.id === changedEvent.id
+      );
+      try {
+        await updateEvent(Number(changedEvent.id), {
+          title: changedEvent.title,
+          description: changedEvent.description ?? "",
+          startTime: String(changedEvent.start),
+          endTime: String(changedEvent.end)
+        });
+        setEvents(newEvents);
+      } catch (error) {
+        console.error("Tapahtuman muokkaaminen epäonnistui: ", error);
+      }
+      return;
+    }
+    setEvents(newEvents);
+  };
 
   // Haetaan tapahtumat backendistä komponentin latautuessa
   useEffect(() => {
@@ -49,7 +104,7 @@ function Calendar() {
       {/* mui scheduler */}
       <EventCalendar
         events={events}
-        onEventsChange={setEvents}
+        onEventsChange={handleEventsChange}
         defaultView='month'
         areEventsDraggable={false}
         defaultPreferences={defaultPreferences}

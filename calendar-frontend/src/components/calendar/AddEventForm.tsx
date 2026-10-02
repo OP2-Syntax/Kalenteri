@@ -2,9 +2,10 @@ import React, { useState } from 'react';
 import { createEvent } from './calendarApi';
 import type { SchedulerEvent } from '@mui/x-scheduler/models';
 import { Box, Button, TextField } from '@mui/material';
+import type { CalendarEvent } from './calendarApi';
 
 interface AddEventFormProps {
-    onCreated: (event: SchedulerEvent) => void;
+    onCreated: (event: CalendarEvent) => void;
     onCancel: () => void;
 }
 
