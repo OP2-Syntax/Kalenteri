@@ -63,7 +63,38 @@ export async function createEvent(event: CreateEventData): Promise<SchedulerEven
 }
 
 //PUT
-//export async function updateEvent() {}
+export async function updateEvent(
+  id: number,
+  event: {
+    title: string;
+    description: string;
+    startTime: string;
+    endTime: string;
+  }
+): Promise<SchedulerEvent> {
+  const response = await fetch(`http://localhost:8080/api/events/${id}`,
+    {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(event)
+    }
+  );
+  if (!response.ok) {
+    throw new Error(
+      "Tapahtuman päivitys epäonnistui: " + response.status
+    );
+  }
+  const updatedEvent: BackendEvent = await response.json();
+
+  return {
+    id: updatedEvent.id,
+    title: updatedEvent.title,
+    start: updatedEvent.startTime,
+    end: updatedEvent.endTime,
+  };
+}
 
 //DELETE
 export async function deleteEvent(id:number): Promise<void> {
