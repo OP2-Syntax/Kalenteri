@@ -58,9 +58,6 @@ function Calendar() {
     });
 
     if (changedEvent) {
-      const oldEvent = events.find(
-        (event) => event.id === changedEvent.id
-      );
       try {
         await updateEvent(Number(changedEvent.id), {
           title: changedEvent.title,
