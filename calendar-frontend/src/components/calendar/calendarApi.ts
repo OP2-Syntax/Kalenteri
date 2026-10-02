@@ -95,6 +95,7 @@ export async function updateEvent(
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
+        ...authHeaders(),
       },
       body: JSON.stringify(event)
     }
@@ -120,6 +121,9 @@ export async function deleteEvent(id:number): Promise<void> {
   const response = await fetch(`${BACKEND_URL}/api/events/${id}`,
     {
       method: "DELETE",
+      headers: {
+        ...authHeaders(),
+      }
     }
   );
   if (!response.ok) {
