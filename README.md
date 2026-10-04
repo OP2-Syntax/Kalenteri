@@ -30,3 +30,19 @@ Projektin tarkoituksena on helpottaa omien menojen suunnittelua ja ratkaisemaan 
 
 # Backlog
 [Link to Backlog](https://github.com/orgs/OP2-Syntax/projects/1)
+
+
+# Testit
+Backendissä on automatisoituja testejä (JUnit 5, Spring Boot Test, MockMvc, H2-testitietokanta):
+- **JwtUtilTest**: JWT-tokenin luonnin ja validoinnin yksikkötestit
+- **ApiIntegrationTest**: rekisteröitymisen, kirjautumisen ja tapahtumien REST-endpointtien integraatiotestit
+- **CalendarApplicationTests**: tarkistaa, että sovelluksen konteksti käynnistyy
+
+Testit ajetaan komentoriviltä backend-kansiossa:
+```
+cd calendar-backend
+./mvnw test
+```
+Windowsissa: `.\mvnw.cmd test`
+
+Testit käyttävät muistissa toimivaa H2-tietokantaa, joten MySQL:ää ei tarvita.
