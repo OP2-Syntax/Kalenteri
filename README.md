@@ -1,3 +1,4 @@
+[![CI](https://github.com/OP2-Syntax/Kalenteri/actions/workflows/ci.yml/badge.svg)](https://github.com/OP2-Syntax/Kalenteri/actions/workflows/ci.yml)
 # Syntax
 
 # Jäsenet:
