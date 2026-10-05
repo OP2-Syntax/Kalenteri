@@ -3,7 +3,7 @@ import { useState } from 'react';
 import Calendar from './components/calendar/Calendar';
 import LoginForm from './components/auth/LoginForm';
 import { getToken, logout } from './authApi';
-import {  Button,  ThemeProvider,  createTheme,  CssBaseline } from '@mui/material';
+import {  Button,  ThemeProvider,  createTheme,  CssBaseline, Box } from '@mui/material';
 
 function App() {
   const [loggedIn, setLoggedIn] = useState(!!getToken());
@@ -27,6 +27,12 @@ function App() {
     <ThemeProvider theme={theme}>
       <CssBaseline />
 
+      <Box
+      sx={{
+        minHeight: '100vh',
+        bgcolor: 'background.default',
+        color: 'text.primary',
+      }} >
       <div
         style={{
           display: 'flex',
@@ -44,6 +50,7 @@ function App() {
         <Button onClick={handleLogout}>Kirjaudu ulos</Button>
       </div>
       <Calendar />
+      </Box>
       </ThemeProvider>
     
   )

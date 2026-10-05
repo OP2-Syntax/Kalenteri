@@ -87,7 +87,7 @@ function Calendar() {
   if (error) return <p>Virhe tapahtumien haussa: {error}</p>;
 
   return (
-    <div style={{ height: 600, width: '100%' }}>
+    <div style={{ height: 850, width: '100%' }}>
       <Typography variant="h4" component="h1">
         Kalenteri
       </Typography>
