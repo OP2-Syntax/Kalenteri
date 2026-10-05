@@ -5,7 +5,7 @@ import { getEvents, deleteEvent, updateEvent, type CalendarEvent } from './calen
 import { defaultPreferences, preferencesMenuConfig } from './calendarPreferences';
 
 import AddEventForm from './AddEventForm';
-import { Button, Dialog, DialogTitle } from '@mui/material';
+import { Button, Dialog, DialogTitle, Typography } from '@mui/material';
 
 
 
@@ -88,7 +88,9 @@ function Calendar() {
 
   return (
     <div style={{ height: 600, width: '100%' }}>
-      <h1>Kalenteri</h1>
+      <Typography variant="h4" component="h1">
+        Kalenteri
+      </Typography>
 
       {/*Avaa addEventFormin*/}
       <Button
