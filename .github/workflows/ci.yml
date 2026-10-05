@@ -1,0 +1,53 @@
+name: CI
+
+# ajetaan pushilla ja pull requestilla
+on: [push, pull_request]
+
+jobs:
+  backend-build:
+    runs-on: ubuntu-latest
+
+    # testit tarvitsevat tietokannan, joten käynnistetään MySQL
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root123
+          MYSQL_DATABASE: calendar_db
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -proot123"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: "25"
+          distribution: "temurin"
+          cache: maven
+      - name: Build
+        # pom.xml on calendar-backend-kansiossa
+        run: mvn -B package -f calendar-backend/pom.xml
+
+  frontend-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: calendar-frontend/package-lock.json
+      - name: Install dependencies
+        run: cd calendar-frontend && npm ci
+      - name: Lint
+        # testiskriptiä ei ole, joten ajetaan lint
+        run: cd calendar-frontend && npm run lint
+      - name: Build
+        run: cd calendar-frontend && npm run build
