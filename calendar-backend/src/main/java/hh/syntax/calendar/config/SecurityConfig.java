@@ -33,12 +33,12 @@ public class SecurityConfig {
         return config.getAuthenticationManager();
     }
 
-  @Bean
-public DaoAuthenticationProvider authenticationProvider(UserDetailsService userDetailsService, PasswordEncoder passwordEncoder) {
+    @Bean
+    public DaoAuthenticationProvider authenticationProvider(UserDetailsService userDetailsService, PasswordEncoder passwordEncoder) {
     DaoAuthenticationProvider provider = new DaoAuthenticationProvider(userDetailsService);
     provider.setPasswordEncoder(passwordEncoder);
     return provider;
-}
+    }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -47,6 +47,10 @@ public DaoAuthenticationProvider authenticationProvider(UserDetailsService userD
             .csrf(csrf -> csrf.disable()) // CSRF-suojaus pois päältä, koska frontend on erillinen React-sovellus
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/auth/**").permitAll() // rekisteröinti ja kirjautuminen ovat julkisia
+                .requestMatchers( // Swagger UI ja OpenAPI-dokumentaatio
+                    "/swagger-ui/**",
+                    "/swagger-ui.html",
+                    "/v3/api-docs/**").permitAll()
                 .anyRequest().authenticated() // kaikki muu (mm. /api/events) vaatii JWT-tokenin
             )
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class); // JWT tarkistetaan ennen oletuskirjautumista
