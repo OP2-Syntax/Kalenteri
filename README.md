@@ -15,6 +15,7 @@ Projektin tarkoituksena on helpottaa omien menojen suunnittelua ja ratkaisemaan 
 # Linkit
 - [Frontend](https://kalenteri-calendar-app-frontend.2.rahtiapp.fi/)
 - [Backend](https://kalenteri-calendar-app-backend.2.rahtiapp.fi/)
+- [Localhost Swagger](http://localhost:8080/swagger-ui/index.html)
 
 
  # Projektin toiminnallisuudet.
