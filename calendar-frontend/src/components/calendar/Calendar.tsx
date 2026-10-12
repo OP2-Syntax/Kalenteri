@@ -5,18 +5,45 @@ import { getEvents, deleteEvent, updateEvent, type CalendarEvent } from './calen
 import { defaultPreferences, preferencesMenuConfig } from './calendarPreferences';
 
 import AddEventForm from './AddEventForm';
-import { Button, Dialog, DialogTitle, Typography } from '@mui/material';
+import {
+  Box,
+  Button,
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  Grid,
+  IconButton,
+  Typography,
+} from '@mui/material';
+import { useEventCalendarApiRef } from '@mui/x-scheduler/use-event-calendar-api-ref';
 
-
-
+const MONTHS = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
+];
 
 function Calendar() {
+  const apiRef = useEventCalendarApiRef();
 
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [open, setOpen] = useState(false)
+  const [open, setOpen] = useState(false);
+  const [monthPickerOpen, setMonthPickerOpen] = useState(false);
+  const [selectedYear, setSelectedYear] = useState(
+    new Date().getFullYear()
+  );
 
   const handleEventCreated = (newEvent: CalendarEvent) => {
     setEvents((prev) => [...prev, newEvent]);
@@ -39,6 +66,7 @@ function Calendar() {
       }
       return;
     }
+
     // Muuttuneen tapahtuman tarkistus
     const changedEvent = newEvents.find((newEvent) => {
       const oldEvent = events.find(
@@ -71,6 +99,7 @@ function Calendar() {
       }
       return;
     }
+
     setEvents(newEvents);
   };
 
@@ -82,26 +111,51 @@ function Calendar() {
       .finally(() => setLoading(false));
   }, []);
 
+  // Kuukausivalitsimen avaaminen
+  const handleOpenMonthPicker = () => {
+    setSelectedYear(new Date().getFullYear());
+    setMonthPickerOpen(true);
+  };
+
+  // Siirrytään valittuun kuukauteen
+  const handleMonthSelect = (monthIndex: number) => {
+    apiRef.current?.setVisibleDate({
+      visibleDate: new Date(selectedYear, monthIndex, 1),
+    });
+
+    setMonthPickerOpen(false);
+  };
+
   // latausviesti
-  if (loading) return <p>Ladataan tapahtumia...</p>;
-  if (error) return <p>Virhe tapahtumien haussa: {error}</p>;
+  if (loading) return <p>Loading events...</p>;
+  if (error) return <p>Error loading events: {error}</p>;
 
   return (
-    <div style={{ height: 850, width: '100%' }}>
+    <Box sx={{ height: 850, width: '100%' }}>
       <Typography variant="h4" component="h1">
-        Kalenteri
+        Calendar
       </Typography>
 
       {/*Avaa addEventFormin*/}
-      <Button
-        variant="contained"
-        onClick={() => setOpen(true)}
-      >
-        Add Event
-      </Button>
+      <Box sx={{ display: 'flex', gap: 1, my: 2 }}>
+        <Button
+          variant="contained"
+          onClick={() => setOpen(true)}
+        >
+          Add Event
+        </Button>
+
+        <Button
+          variant="outlined"
+          onClick={handleOpenMonthPicker}
+        >
+          Choose Month
+        </Button>
+      </Box>
 
       {/* mui scheduler */}
       <EventCalendar
+        apiRef={apiRef}
         events={events}
         onEventsChange={handleEventsChange}
         defaultView='month'
@@ -122,8 +176,66 @@ function Calendar() {
           onCancel={() => setOpen(false)}
         />
       </Dialog>
-    </div>
-  )
+
+      {/* Kuukauden valinta */}
+      <Dialog
+        open={monthPickerOpen}
+        onClose={() => setMonthPickerOpen(false)}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle>Choose a month</DialogTitle>
+
+        <DialogContent>
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              mb: 2,
+            }}
+          >
+            <IconButton
+              aria-label="Previous year"
+              onClick={() =>
+                setSelectedYear((year) => year - 1)
+              }
+            >
+              ‹
+            </IconButton>
+
+            <Typography variant="h6">
+              {selectedYear}
+            </Typography>
+
+            <IconButton
+              aria-label="Next year"
+              onClick={() =>
+                setSelectedYear((year) => year + 1)
+              }
+            >
+              ›
+            </IconButton>
+          </Box>
+
+          <Grid container spacing={1}>
+            {MONTHS.map((month, index) => (
+              <Grid key={month} size={4}>
+                <Button
+                  fullWidth
+                  variant="outlined"
+                  onClick={() => handleMonthSelect(index)}
+                  sx={{ minHeight: 40 }}
+                >
+                  {month}
+                </Button>
+              </Grid>
+            ))}
+          </Grid>
+        </DialogContent>
+      </Dialog>
+    </Box>
+  );
 }
 
-export default Calendar
+export default Calendar;
