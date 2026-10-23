@@ -1,7 +1,7 @@
 import { EventCalendar } from '@mui/x-scheduler/event-calendar';
 //import type { SchedulerEvent } from '@mui/x-scheduler/models';
 import { useEffect, useState } from 'react';
-import { getEvents, deleteEvent, updateEvent, type CalendarEvent } from './calendarApi';
+import { getEvents, createEvent, deleteEvent, updateEvent, type CalendarEvent } from './calendarApi';
 import { defaultPreferences, preferencesMenuConfig } from './calendarPreferences';
 
 import AddEventForm from './AddEventForm';
@@ -31,6 +31,12 @@ const MONTHS = [
   'November',
   'December',
 ];
+// korjaa kellonajan tapahtumaa luodessa kalenteria klikkaamalla
+function toLocalDateTime(value: Date | string): string {
+  const date = new Date(value);
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+}
 
 function Calendar() {
   const apiRef = useEventCalendarApiRef();
@@ -51,6 +57,31 @@ function Calendar() {
   };
 
   const handleEventsChange = async (newEvents: CalendarEvent[]) => {
+    // Uusi tapahtuma lisätään
+    const addedEvent = newEvents.find(
+      (newEvent) =>
+        !events.some((oldEvent) => oldEvent.id === newEvent.id)
+    );
+
+    if (addedEvent) {
+      try {
+        const savedEvent = await createEvent({
+          title: addedEvent.title,
+          description: addedEvent.description ?? '',
+          startTime: toLocalDateTime(addedEvent.start),
+          endTime: toLocalDateTime(addedEvent.end),
+        });
+
+        setEvents((prev) => [
+          ...prev.filter((event) => event.id !== addedEvent.id),
+          savedEvent,
+        ]);
+      } catch (error) {
+        console.error("Tapahtuman tallennus epäonnistui: ", error)
+      }
+      return;
+    }
+
     // Tapahtuman poiston tarkistus
     const deletedEvent = events.find(
       (oldEvent) =>
@@ -162,7 +193,7 @@ function Calendar() {
         areEventsDraggable={false}
         defaultPreferences={defaultPreferences}
         preferencesMenuConfig={preferencesMenuConfig}
-        eventCreation={false}
+        eventCreation={{ interaction: "double-click", duration: 60 }}
       />
 
       <Dialog
