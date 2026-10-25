@@ -3,6 +3,7 @@ import { EventCalendar } from '@mui/x-scheduler/event-calendar';
 import { useEffect, useState } from 'react';
 import { getEvents, createEvent, deleteEvent, updateEvent, type CalendarEvent } from './calendarApi';
 import { defaultPreferences, preferencesMenuConfig } from './calendarPreferences';
+import { type ComponentProps, type MouseEvent as ReactMouseEvent } from 'react';
 
 import AddEventForm from './AddEventForm';
 import {
@@ -50,6 +51,50 @@ function Calendar() {
   const [selectedYear, setSelectedYear] = useState(
     new Date().getFullYear()
   );
+  const [view, setView] = useState<ComponentProps<typeof EventCalendar>['view']>('month');
+
+  // Etsii kuukausiotsikon ("October 2026") klikatusta kohdasta
+  const findMonthTitle = (start: HTMLElement): HTMLElement | null => {
+    const monthTitleRegex = new RegExp(`^(${MONTHS.join('|')}) \\d{4}$`);
+    let el: HTMLElement | null = start;
+
+    for (let i = 0; i < 3 && el; i++) {
+      const ownText = Array.from(el.childNodes)
+        .filter((node) => node.nodeType === Node.TEXT_NODE)
+        .map((node) => node.textContent ?? '')
+        .join('')
+        .trim();
+
+      const fullText = el.textContent?.trim() ?? '';
+
+      if (monthTitleRegex.test(ownText) || monthTitleRegex.test(fullText)) {
+        return el;
+      }
+      el = el.parentElement;
+    }
+    return null;
+  };
+
+  const handleCalendarClick = (e: ReactMouseEvent<HTMLDivElement>) => {
+    if (findMonthTitle(e.target as HTMLElement)) {
+      setView('month');
+    }
+  };
+
+  const handleCalendarMouseOver = (e: ReactMouseEvent<HTMLDivElement>) => {
+    const title = findMonthTitle(e.target as HTMLElement);
+    if (title) {
+      title.style.cursor = 'pointer';
+      title.style.textDecoration = 'underline';
+    }
+  };
+
+  const handleCalendarMouseOut = (e: ReactMouseEvent<HTMLDivElement>) => {
+    const title = findMonthTitle(e.target as HTMLElement);
+    if (title) {
+      title.style.textDecoration = '';
+    }
+  };
 
   const handleEventCreated = (newEvent: CalendarEvent) => {
     setEvents((prev) => [...prev, newEvent]);
@@ -185,16 +230,25 @@ function Calendar() {
       </Box>
 
       {/* mui scheduler */}
-      <EventCalendar
-        apiRef={apiRef}
-        events={events}
-        onEventsChange={handleEventsChange}
-        defaultView='month'
-        areEventsDraggable={false}
-        defaultPreferences={defaultPreferences}
-        preferencesMenuConfig={preferencesMenuConfig}
-        eventCreation={{ interaction: "double-click", duration: 60 }}
-      />
+
+      <div
+        onClick={handleCalendarClick}
+        onMouseOver={handleCalendarMouseOver}
+        onMouseOut={handleCalendarMouseOut}
+      >
+        <EventCalendar
+          apiRef={apiRef}
+          events={events}
+          onEventsChange={handleEventsChange}
+          defaultView='month'
+          view={view}
+          onViewChange={setView}
+          areEventsDraggable={false}
+          defaultPreferences={defaultPreferences}
+          preferencesMenuConfig={preferencesMenuConfig}
+          eventCreation={{ interaction: "double-click", duration: 60 }}
+        />
+      </div>
 
       <Dialog
         maxWidth={'lg'}
