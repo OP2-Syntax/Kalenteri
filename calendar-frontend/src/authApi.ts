@@ -20,6 +20,22 @@ export async function login(username: string, password: string): Promise<string>
   return data.token;
 }
 
+// Google-kirjautuminen
+export async function loginWithGoogle(credential: string): Promise<string> {
+  const response = await fetch(`${BACKEND_URL}/api/auth/google`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ credential }),
+  });
+
+  if (!response.ok) {
+    throw new Error('Google-kirjautuminen epäonnistui');
+  }
+
+  const data: AuthResponse = await response.json();
+  return data.token;
+}
+
 // rekisteröinti
 export async function register(username: string, email: string, password: string): Promise<string> {
   const response = await fetch(`${BACKEND_URL}/api/auth/register`, {
