@@ -47,7 +47,9 @@ jobs:
       - name: Install dependencies
         run: cd calendar-frontend && npm ci
       - name: Lint
-        # testiskriptiä ei ole, joten ajetaan lint
         run: cd calendar-frontend && npm run lint
+      - name: Test
+        # Vitest + React Testing Library -testit
+        run: cd calendar-frontend && npm test
       - name: Build
         run: cd calendar-frontend && npm run build

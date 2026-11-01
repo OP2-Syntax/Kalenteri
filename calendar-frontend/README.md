@@ -1,32 +1,28 @@
-# React + TypeScript + Vite
+# Kalenteri – Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Kalenterisovelluksen käyttöliittymä on toteutettu Reactilla, TypeScriptillä ja Vitellä.
 
-Currently, two official plugins are available:
+## Testit
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+Frontendin automatisoidut testit käyttävät Vitestiä, React Testing Libraryä ja jsdomia. Ne testaavat käyttöliittymän toimintaa sekä frontendin API-apufunktioita ilman oikeaa selainta tai käynnissä olevaa backend-palvelinta. API-kutsut mockataan testeissä.
 
-## React Compiler
+Testit kattavat:
+- **App**: kirjautumis- ja kalenterinäkymän näyttämisen, uloskirjautumisen ja teeman vaihdon
+- **authApi**: kirjautumis- ja rekisteröintipyyntöjen sisällön, virhetilanteet sekä tokenin tallennuksen, haun ja poiston
+- **LoginForm**: kirjautumisen ja rekisteröitymisen onnistumisen sekä virheiden näyttämisen
+- **AddEventForm**: tapahtuman lähettämisen, pakolliset kentät, peruutuksen ja tallennusvirheen
+- **Calendar**: tapahtumien latauksen, lisäyksen, muokkauksen ja poiston sekä kalenterinäkymän ohjaimet
+- **calendarApi**: tapahtumien API-pyyntöjen HTTP-metodit, osoitteet ja sisällöt, tapahtumadatan muunnokset, Authorization-headerin sekä virhetilanteet
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Asenna riippuvuudet ja aja testit frontend-kansiossa:
 
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```bash
+npm install
+npm test
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+Watch-tilassa testit käynnistyvät komennolla:
+
+```bash
+npm run test:watch
+```

@@ -40,7 +40,7 @@ Backendissä on automatisoituja testejä (JUnit 5, Spring Boot Test, MockMvc, H2
 - **ApiIntegrationTest**: rekisteröitymisen, kirjautumisen ja tapahtumien REST-endpointtien integraatiotestit
 - **CalendarApplicationTests**: tarkistaa, että sovelluksen konteksti käynnistyy
 
-Testit ajetaan komentoriviltä backend-kansiossa:
+Backend-testit ajetaan komentoriviltä backend-kansiossa:
 ```
 cd calendar-backend
 ./mvnw test
@@ -48,3 +48,20 @@ cd calendar-backend
 Windowsissa: `.\mvnw.cmd test`
 
 Testit käyttävät muistissa toimivaa H2-tietokantaa, joten MySQL:ää ei tarvita.
+
+Frontendissä on automatisoituja testejä (Vitest, React Testing Library ja jsdom):
+- **App.test.tsx**: kirjautumis- ja kalenterinäkymän näyttäminen, uloskirjautuminen sekä teeman vaihto
+- **authApi.test.ts**: kirjautumis- ja rekisteröintipyyntöjen sisältö, virhetilanteet ja tokenin tallennus
+- **LoginForm.test.tsx**: kirjautuminen ja rekisteröityminen lomakkeella sekä onnistumis- ja virhetilanteet
+- **AddEventForm.test.tsx**: tapahtuman lisäys, pakolliset kentät, peruutus ja tallennusvirhe
+- **Calendar.test.tsx**: tapahtumien lataus, lisäys, muokkaus ja poisto sekä kalenterinäkymän ohjaimet
+- **calendarApi.test.ts**: tapahtumien API-pyynnöt, datan muunnokset, Authorization-header ja virhetilanteet
+
+Frontend-testit ajetaan komentoriviltä frontend-kansiossa:
+```
+cd calendar-frontend
+npm install
+npm test
+```
+
+Testejä voi ajaa myös jatkuvassa watch-tilassa komennolla `npm run test:watch`. Frontend-testit käyttävät mockattuja API-kutsuja, joten backend-palvelimen ei tarvitse olla käynnissä. Lisätietoja on [frontendin README-tiedostossa](./calendar-frontend/README.md).
