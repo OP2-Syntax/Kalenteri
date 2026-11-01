@@ -1,9 +1,40 @@
-import { useState } from 'react';
-import { Button, TextField, Box, Typography, Tabs, Tab } from '@mui/material';
-import { login, register, saveToken } from '../../authApi';
+import { useEffect, useRef, useState } from 'react';
+import { Button, TextField, Box, Typography, Tabs, Tab, Divider } from '@mui/material';
+import { login, loginWithGoogle, register, saveToken } from '../../authApi';
 
 interface LoginFormProps {
   onLoggedIn: () => void;
+}
+
+interface GoogleCredentialResponse {
+  credential: string;
+}
+
+interface GoogleIdentityServices {
+  accounts: {
+    id: {
+      initialize: (config: {
+        client_id: string;
+        callback: (response: GoogleCredentialResponse) => void;
+      }) => void;
+      renderButton: (
+        element: HTMLElement,
+        options: {
+          theme: string;
+          size: string;
+          text: string;
+          shape: string;
+          width: number;
+        }
+      ) => void;
+    };
+  };
+}
+
+declare global {
+  interface Window {
+    google?: GoogleIdentityServices;
+  }
 }
 
 function LoginForm({ onLoggedIn }: LoginFormProps) {
@@ -12,6 +43,82 @@ function LoginForm({ onLoggedIn }: LoginFormProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const googleButtonRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (mode !== 'login') {
+      return;
+    }
+
+    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+
+    if (!clientId) {
+      setError('Google sign-in is not configured.');
+      return;
+    }
+
+    let cancelled = false;
+
+    const initializeGoogleSignIn = () => {
+      if (cancelled || !window.google || !googleButtonRef.current) {
+        return;
+      }
+
+      window.google.accounts.id.initialize({
+        client_id: clientId,
+        callback: async (response: GoogleCredentialResponse) => {
+          setError(null);
+
+          try {
+            const token = await loginWithGoogle(response.credential);
+            saveToken(token);
+            onLoggedIn();
+          } catch {
+            setError('Google sign-in failed. Please try again.');
+          }
+        },
+      });
+
+      googleButtonRef.current.innerHTML = '';
+
+      window.google.accounts.id.renderButton(googleButtonRef.current, {
+        theme: 'outline',
+        size: 'large',
+        text: 'signin_with',
+        shape: 'rectangular',
+        width: 300,
+      });
+    };
+
+    if (window.google) {
+      initializeGoogleSignIn();
+    } else {
+      const existingScript = document.querySelector<HTMLScriptElement>(
+        'script[src="https://accounts.google.com/gsi/client"]'
+      );
+
+      const script =
+        existingScript ?? document.createElement('script');
+
+      if (!existingScript) {
+        script.src = 'https://accounts.google.com/gsi/client';
+        script.async = true;
+        script.defer = true;
+        document.head.appendChild(script);
+      }
+
+      script.addEventListener('load', initializeGoogleSignIn);
+    }
+
+    return () => {
+      cancelled = true;
+      const script = document.querySelector<HTMLScriptElement>(
+        'script[src="https://accounts.google.com/gsi/client"]'
+      );
+      script?.removeEventListener('load', initializeGoogleSignIn);
+    };
+  }, [mode, onLoggedIn]);
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -81,6 +188,21 @@ function LoginForm({ onLoggedIn }: LoginFormProps) {
           {mode === 'login' ? 'Kirjaudu' : 'Rekisteröidy'}
         </Button>
       </form>
+
+{mode === 'login' && (
+        <>
+          <Divider sx={{ my: 3 }}>OR</Divider>
+
+       <Box
+            ref={googleButtonRef}
+            sx={{
+              display: 'flex',
+              justifyContent: 'center',
+              minHeight: 40,
+            }}
+          />
+        </>
+      )}
     </Box>
   );
 }
