@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import { Box, Button, List, ListItem, ListItemText, TextField, Typography } from '@mui/material';
+import { Box, Button, IconButton, List, ListItem, ListItemText, TextField, Typography, } from '@mui/material';
 import {
   acceptRequest,
   deleteRequest,
@@ -10,7 +10,9 @@ import {
   sendRequest,
   type Friend,
   type FriendRequest,
+  removeFriend
 } from './friendsApi';
+import DeleteIcon from '@mui/icons-material/Delete';
 
 function FriendsPanel() {
   const [friends, setFriends] = useState<Friend[]>([]);
@@ -167,7 +169,18 @@ function FriendsPanel() {
       </Typography>
       <List dense>
         {friends.map((friend) => (
-          <ListItem key={friend.id}>
+          <ListItem
+            key={friend.id}
+            secondaryAction={
+              <IconButton
+                edge="end"
+                aria-label='Poista kaveri'
+                onClick={() => run(() => removeFriend(friend.id))}
+              >
+                <DeleteIcon />
+              </IconButton>
+          }
+          >
             <ListItemText primary={friend.username} />
           </ListItem>
         ))}
