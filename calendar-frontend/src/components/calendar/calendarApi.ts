@@ -1,5 +1,5 @@
 import type { SchedulerEvent } from '@mui/x-scheduler/models';
-import { getToken } from '../../authApi';
+import { BACKEND_URL, getToken } from '../../authApi';
 
 // Backendin palauttaman tapahtuman muoto (Event.java:n kentät)
 interface BackendEvent {
@@ -16,8 +16,6 @@ interface CreateEventData {
   startTime: string;
   endTime: string;
 }
-
-const BACKEND_URL = 'https://kalenteri-calendar-app-backend.2.rahtiapp.fi';
 
 export interface CalendarEvent extends SchedulerEvent {
   description: string;

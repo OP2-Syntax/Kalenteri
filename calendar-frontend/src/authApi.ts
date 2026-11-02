@@ -1,4 +1,4 @@
-export const BACKEND_URL = 'https://kalenteri-calendar-app-backend.2.rahtiapp.fi';
+export const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 interface AuthResponse {
   token: string;
