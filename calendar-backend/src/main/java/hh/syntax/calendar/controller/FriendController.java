@@ -152,4 +152,23 @@ public class FriendController {
         friendRequestRepository.delete(request);
         return ResponseEntity.noContent().build();
     }
+
+    // DELETE /api/friends/5 — poistaa käyttäjän 5 kaverilistalta (molempiin suuntiin)
+    @DeleteMapping("/friends/{friendId}")
+    @Transactional
+    public ResponseEntity<Void> removeFriend(@PathVariable Long friendId, Authentication authentication) {
+        User me = getCurrentUser(authentication);
+        User friend = userRepository.findById(friendId).orElse(null);
+
+        // ei löydy tai ei ole kaveri -> 404
+        if (friend == null || !me.getFriends().contains(friend)) {
+            return ResponseEntity.notFound().build();
+        }
+
+        me.getFriends().remove(friend);
+        friend.getFriends().remove(me);
+
+        return ResponseEntity.noContent().build();
+    }
+
 }

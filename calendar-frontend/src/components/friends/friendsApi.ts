@@ -88,3 +88,12 @@ export async function deleteRequest(requestId: number): Promise<void> {
   });
   checkOk(response, 'Pyynnön poisto epäonnistui');
 }
+
+// kaverin poisto kaverilistalta (poistaa kaveruuden molemmilta osapuolilta)
+export async function removeFriend(friendId: number): Promise<void> {
+  const response = await fetch(`${BACKEND_URL}/api/friends/${friendId}`, {
+    method: 'DELETE',
+    headers: authHeaders(),
+  });
+  checkOk(response, 'Kaverin poisto epäonnistui');
+}
