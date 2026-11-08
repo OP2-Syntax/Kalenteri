@@ -63,4 +63,15 @@ export function getToken(): string | null {
 
 export function logout() {
   localStorage.removeItem('token');
+  localStorage.removeItem('username');
+}
+
+// Tallentaa käyttäjätunnuksen locaalisti
+export function saveUsername(username: string) {
+  localStorage.setItem('username', username);
+}
+
+//Hakee käyttäjätunnuksen localStoragesta, jotta saadaan käyttäjätunnuksen merkki näkyviin avatarmenussa.
+export function getUsername(): string | null {
+  return localStorage.getItem('username');
 }
