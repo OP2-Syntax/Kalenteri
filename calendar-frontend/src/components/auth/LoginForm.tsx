@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { Button, TextField, Box, Typography, Tabs, Tab, Divider } from '@mui/material';
-import { login, loginWithGoogle, register, saveToken } from '../../authApi';
+import { login, loginWithGoogle, register, saveToken, saveUsername, } from '../../authApi';
 
 interface LoginFormProps {
-  onLoggedIn: () => void;
+  onLoggedIn: (username : string) => void;
 }
 
 interface GoogleCredentialResponse {
@@ -71,8 +71,21 @@ function LoginForm({ onLoggedIn }: LoginFormProps) {
 
           try {
             const token = await loginWithGoogle(response.credential);
+
+            const payload = response.credential.split('.')[1];
+            const base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
+            const binary = atob(base64);
+            const bytes = Uint8Array.from(binary, (c) => c.charCodeAt(0));
+
+            const profile = JSON.parse(
+              new TextDecoder().decode(bytes)
+            ) as { name?: string; email?: string };
+            
+            const displayName = profile.name || profile.email || 'User';
+
             saveToken(token);
-            onLoggedIn();
+            saveUsername(displayName)
+            onLoggedIn(displayName);
           } catch {
             setError('Google sign-in failed. Please try again.');
           }
@@ -131,7 +144,8 @@ function LoginForm({ onLoggedIn }: LoginFormProps) {
           : await register(username, email, password);
 
       saveToken(token);
-      onLoggedIn();
+      saveUsername(username);
+      onLoggedIn(username);
     } catch {
       setError(mode === 'login' ? 'Väärä käyttäjätunnus tai salasana' : 'Rekisteröinti epäonnistui');
     }
