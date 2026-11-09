@@ -142,7 +142,7 @@ function AddEventForm({ onCreated, onCancel }: AddEventFormProps) {
                     isOptionEqualToValue={(option, value) => option.id === value.id}
                     noOptionsText="Ei kavereita"
                     renderInput={(params) => (
-                        <TextField {...params} placeholder="Kutsu kavereita (valinnainen)" />
+                        <TextField {...params} placeholder="Invite Friends" />
                     )}
                 />
             </Box>
