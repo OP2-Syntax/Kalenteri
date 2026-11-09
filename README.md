@@ -22,13 +22,14 @@ Projektin tarkoituksena on helpottaa omien menojen suunnittelua ja ratkaisemaan 
 - Lisätä, Poistaa ja Muokata tapahtumia.
 - Mahdollisuus laittaa ToDo lista, joka sitten lisätään automaattisesti kalenteriin.
 - Henkilökohtaisten tunnuksien tekeminen.
+- Kavereiden lisäys.
 - Voi kutsua muita käyttäjiä omiin tapahtumiin tai järjestää tapahtuman, joka näkyy kaikille ja näyttää kaikki osallistujat.
 
 # Käytetyt teknologiat
 - Springboot
 - React
 - mySQL
-- Joku pilvi sovellus kuten render
+- Rahti pilvipalvelu
 
 # Backlog
 [Link to Backlog](https://github.com/orgs/OP2-Syntax/projects/1)
@@ -65,3 +66,9 @@ npm test
 ```
 
 Testejä voi ajaa myös jatkuvassa watch-tilassa komennolla `npm run test:watch`. Frontend-testit käyttävät mockattuja API-kutsuja, joten backend-palvelimen ei tarvitse olla käynnissä. Lisätietoja on [frontendin README-tiedostossa](./calendar-frontend/README.md).
+
+
+
+# Tietokantakaavio
+<img width="433" height="329" alt="image" src="https://github.com/user-attachments/assets/ecfb339a-5717-4c43-ac2a-6e7f0f1effa8" />
+
