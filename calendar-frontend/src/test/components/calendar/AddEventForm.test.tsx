@@ -3,8 +3,10 @@ import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import AddEventForm from '../../../components/calendar/AddEventForm';
 import { createEvent } from '../../../components/calendar/calendarApi';
+import { getFriends } from '../../../components/friends/friendsApi';
 
 vi.mock('../../../components/calendar/calendarApi', () => ({ createEvent: vi.fn() }));
+vi.mock('../../../components/friends/friendsApi', () => ({ getFriends: vi.fn() }));
 
 // kentillä ei ole label-yhteyttä, joten haetaan ne tyypin perusteella
 function fillForm(container: HTMLElement) {
@@ -23,6 +25,8 @@ function fillForm(container: HTMLElement) {
 describe('AddEventForm', () => {
   beforeEach(() => {
     vi.mocked(createEvent).mockReset();
+    vi.mocked(getFriends).mockReset();
+    vi.mocked(getFriends).mockResolvedValue([]);
   });
 
   it('lähettää tapahtuman yhdistetyillä päivämäärillä ja kellonajoilla', async () => {
@@ -65,6 +69,32 @@ describe('AddEventForm', () => {
     expect(createEvent).toHaveBeenCalled();
     expect(onCreated).not.toHaveBeenCalled();
     expect(console.error).toHaveBeenCalled();
+  });
+
+  it('lähettää valitut kaverit participantIds-kentässä', async () => {
+    vi.mocked(getFriends).mockResolvedValue([{ id: 7, username: 'kaveri' }]);
+    vi.mocked(createEvent).mockResolvedValue({
+      id: 1,
+      title: 'Palaveri',
+      description: 'Viikkopalaveri',
+      start: '2026-11-02T10:00',
+      end: '2026-11-02T11:00',
+    });
+    const user = userEvent.setup();
+    const { container } = render(<AddEventForm onCreated={vi.fn()} onCancel={vi.fn()} />);
+
+    fillForm(container);
+    await user.click(screen.getByRole('combobox'));
+    await user.click(await screen.findByRole('option', { name: 'kaveri' }));
+    await user.click(screen.getByRole('button', { name: 'Add Event' }));
+
+    expect(createEvent).toHaveBeenCalledWith({
+      title: 'Palaveri',
+      description: 'Viikkopalaveri',
+      startTime: '2026-11-02T10:00',
+      endTime: '2026-11-02T11:00',
+      participantIds: [7],
+    });
   });
 
   it('ei lähetä lomaketta, jos pakollisia kenttiä puuttuu', async () => {

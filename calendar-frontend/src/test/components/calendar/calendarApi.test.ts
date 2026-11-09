@@ -1,5 +1,12 @@
 import { describe, expect, it, vi } from 'vitest';
-import { createEvent, deleteEvent, getEvents, updateEvent } from '../../../components/calendar/calendarApi';
+import {
+  addParticipant,
+  createEvent,
+  deleteEvent,
+  getEvents,
+  removeParticipant,
+  updateEvent,
+} from '../../../components/calendar/calendarApi';
 import { saveToken } from '../../../authApi';
 
 const backendEvent = {
@@ -48,7 +55,7 @@ describe('calendarApi', () => {
     await getEvents();
 
     const [url, options] = fetchMock.mock.calls[0];
-    expect(url).toMatch(/\/api\/events$/);
+    expect(url).toMatch(/\/api\/events\/shared$/);
     expect(options.headers).toEqual({ Authorization: 'Bearer jwt-token' });
   });
 
@@ -71,7 +78,7 @@ describe('calendarApi', () => {
 
     expect(result).toEqual(calendarEvent);
     const [url, options] = fetchMock.mock.calls[0];
-    expect(url).toMatch(/\/api\/events$/);
+    expect(url).toMatch(/\/api\/events\/shared$/);
     expect(options.method).toBe('POST');
     expect(options.headers).toEqual({
       'Content-Type': 'application/json',
@@ -92,7 +99,7 @@ describe('calendarApi', () => {
 
     expect(result.title).toBe('Muutettu');
     const [url, options] = fetchMock.mock.calls[0];
-    expect(url).toMatch(/\/api\/events\/1$/);
+    expect(url).toMatch(/\/api\/events\/shared\/1$/);
     expect(options.method).toBe('PUT');
     expect(JSON.parse(options.body).title).toBe('Muutettu');
   });
@@ -115,5 +122,31 @@ describe('calendarApi', () => {
   it('deleteEvent heittää virheen, jos poisto epäonnistuu', async () => {
     mockFetch(false, {}, 404);
     await expect(deleteEvent(5)).rejects.toThrow('404');
+  });
+
+  it('addParticipant lähettää POST-pyynnön ja palauttaa osallistujat', async () => {
+    const fetchMock = mockFetch(true, { ...backendEvent, participants: [{ id: 7, username: 'kaveri' }] });
+
+    const result = await addParticipant(1, 7);
+
+    expect(result.participants).toEqual([{ id: 7, username: 'kaveri' }]);
+    const [url, options] = fetchMock.mock.calls[0];
+    expect(url).toMatch(/\/api\/events\/1\/participants\/7$/);
+    expect(options.method).toBe('POST');
+  });
+
+  it('addParticipant heittää virheen, jos käyttäjä ei ole kaveri', async () => {
+    mockFetch(false, {}, 400);
+    await expect(addParticipant(1, 7)).rejects.toThrow('400');
+  });
+
+  it('removeParticipant lähettää DELETE-pyynnön oikeaan osoitteeseen', async () => {
+    const fetchMock = mockFetch(true);
+
+    await removeParticipant(1, 7);
+
+    const [url, options] = fetchMock.mock.calls[0];
+    expect(url).toMatch(/\/api\/events\/1\/participants\/7$/);
+    expect(options.method).toBe('DELETE');
   });
 });

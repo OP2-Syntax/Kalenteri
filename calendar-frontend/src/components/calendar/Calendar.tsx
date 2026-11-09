@@ -6,6 +6,7 @@ import { defaultPreferences, preferencesMenuConfig } from './calendarPreferences
 import { type ComponentProps, type MouseEvent as ReactMouseEvent } from 'react';
 
 import AddEventForm from './AddEventForm';
+import EventParticipantsDialog from './EventParticipantsDialog';
 import {
   Box,
   Button,
@@ -47,6 +48,7 @@ function Calendar() {
   const [error, setError] = useState<string | null>(null);
 
   const [open, setOpen] = useState(false);
+  const [participantsOpen, setParticipantsOpen] = useState(false);
   const [monthPickerOpen, setMonthPickerOpen] = useState(false);
   const [selectedYear, setSelectedYear] = useState(
     new Date().getFullYear()
@@ -99,6 +101,12 @@ function Calendar() {
   const handleEventCreated = (newEvent: CalendarEvent) => {
     setEvents((prev) => [...prev, newEvent]);
     setOpen(false);
+  };
+
+  const handleParticipantsChanged = (changed: CalendarEvent) => {
+    setEvents((prev) =>
+      prev.map((event) => (event.id === changed.id ? { ...event, participants: changed.participants } : event))
+    );
   };
 
   const handleEventsChange = async (newEvents: CalendarEvent[]) => {
@@ -227,7 +235,20 @@ function Calendar() {
         >
           Choose Month
         </Button>
+        <Button
+          variant="outlined"
+          onClick={() => setParticipantsOpen(true)}
+        >
+          Friends in Events
+        </Button>
       </Box>
+
+      <EventParticipantsDialog
+        open={participantsOpen}
+        onClose={() => setParticipantsOpen(false)}
+        events={events.filter((event) => event.mine ?? true)}
+        onEventChanged={handleParticipantsChanged}
+      />
 
       {/* mui scheduler */}
 

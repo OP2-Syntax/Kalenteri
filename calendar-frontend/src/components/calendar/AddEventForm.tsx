@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { createEvent } from './calendarApi';
 //import type { SchedulerEvent } from '@mui/x-scheduler/models';
-import { Box, Button, TextField } from '@mui/material';
+import { Autocomplete, Box, Button, TextField } from '@mui/material';
 import type { CalendarEvent } from './calendarApi';
+import { getFriends, type Friend } from '../friends/friendsApi';
 
 interface AddEventFormProps {
     onCreated: (event: CalendarEvent) => void;
@@ -17,6 +18,14 @@ function AddEventForm({ onCreated, onCancel }: AddEventFormProps) {
     const [startTime, setStartTime] = useState('');
     const [endDate, setEndDate] = useState('')
     const [endTime, setEndTime] = useState('');
+    const [friends, setFriends] = useState<Friend[]>([]);
+    const [selectedFriends, setSelectedFriends] = useState<Friend[]>([]);
+
+    useEffect(() => {
+        getFriends()
+            .then(setFriends)
+            .catch((error) => console.error("Kaverilistan haku epäonnistui: ", error));
+    }, []);
 
     const handleSubmit = async (e: React.FormEvent) => {
 
@@ -30,7 +39,10 @@ function AddEventForm({ onCreated, onCancel }: AddEventFormProps) {
                 title,
                 description,
                 startTime: startDateTime,
-                endTime: endDateTime
+                endTime: endDateTime,
+                ...(selectedFriends.length > 0
+                    ? { participantIds: selectedFriends.map((friend) => friend.id) }
+                    : {}),
             });
             onCreated(newEvent);
 
@@ -40,6 +52,7 @@ function AddEventForm({ onCreated, onCancel }: AddEventFormProps) {
             setStartDate("")
             setEndTime("");
             setEndDate("");
+            setSelectedFriends([]);
         } catch (error) {
             console.error("Tapahtuman lisääminen epöonnistui: ", error);
         }
@@ -114,6 +127,23 @@ function AddEventForm({ onCreated, onCancel }: AddEventFormProps) {
                     value={endTime}
                     onChange={(event) => setEndTime(event.target.value)}
                     required
+                />
+            </Box>
+
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <label style={{width:150}}>Friends:</label>
+                <Autocomplete
+                    multiple
+                    fullWidth
+                    options={friends}
+                    value={selectedFriends}
+                    onChange={(_event, value) => setSelectedFriends(value)}
+                    getOptionLabel={(friend) => friend.username}
+                    isOptionEqualToValue={(option, value) => option.id === value.id}
+                    noOptionsText="Ei kavereita"
+                    renderInput={(params) => (
+                        <TextField {...params} placeholder="Kutsu kavereita (valinnainen)" />
+                    )}
                 />
             </Box>
 
