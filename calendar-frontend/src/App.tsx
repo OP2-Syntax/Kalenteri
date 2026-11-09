@@ -143,11 +143,11 @@ function App() {
           <Divider />
 
           <MenuItem onClick={handleFriends}>
-            Kaverit
+            Friends
           </MenuItem>
 
           <MenuItem onClick={handleDarkMode}>
-            {darkMode ? 'Light mode' : 'Dark mode'}
+            {darkMode ? 'Light Mode' : 'Dark Mode'}
           </MenuItem>
 
           <Divider />
@@ -156,7 +156,7 @@ function App() {
             onClick={handleLogout}
             sx={{ color: 'error.main' }}
           >
-            Kirjaudu ulos
+            Log Out
           </MenuItem>
         </Menu>
       </Box>
@@ -165,7 +165,7 @@ function App() {
         open={showFriends}
         onClose={() => setShowFriends(false)}
       >
-        <DialogTitle>Kaverit</DialogTitle>
+        <DialogTitle>Friends</DialogTitle>
         <DialogContent>
           <FriendsPanel />
         </DialogContent>

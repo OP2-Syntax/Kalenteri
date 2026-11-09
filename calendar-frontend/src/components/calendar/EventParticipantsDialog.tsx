@@ -60,11 +60,11 @@ function EventParticipantsDialog({ open, onClose, events, onEventChanged }: Even
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Kaverit tapahtumissa</DialogTitle>
+      <DialogTitle>Friends in Events</DialogTitle>
       <DialogContent>
         {message && <Typography color="error" sx={{ mb: 1 }}>{message}</Typography>}
         {events.length === 0 && (
-          <Typography variant="body2" color="text.secondary">Ei omia tapahtumia</Typography>
+          <Typography variant="body2" color="text.secondary">No upcoming events</Typography>
         )}
         <List>
           {events.map((event) => {
@@ -83,7 +83,7 @@ function EventParticipantsDialog({ open, onClose, events, onEventChanged }: Even
                     <Chip key={friend.id} label={friend.username} onDelete={() => handleRemove(event, friend)} />
                   ))}
                   {participants.length === 0 && (
-                    <Typography variant="body2" color="text.secondary">Ei osallistujia</Typography>
+                    <Typography variant="body2" color="text.secondary">No participants</Typography>
                   )}
                 </Box>
                 <Autocomplete
@@ -95,15 +95,15 @@ function EventParticipantsDialog({ open, onClose, events, onEventChanged }: Even
                   }}
                   getOptionLabel={(friend) => friend.username}
                   isOptionEqualToValue={(option, value) => option.id === value.id}
-                  noOptionsText="Ei lisättäviä kavereita"
-                  renderInput={(params) => <TextField {...params} placeholder="Lisää kaveri" />}
+                  noOptionsText="No friends to add"
+                  renderInput={(params) => <TextField {...params} placeholder="Add Friend" />}
                 />
               </ListItem>
             );
           })}
         </List>
       </DialogContent>
-      <DialogActions><Button onClick={onClose}>Sulje</Button></DialogActions>
+      <DialogActions><Button onClick={onClose}>Close</Button></DialogActions>
     </Dialog>
   );
 }

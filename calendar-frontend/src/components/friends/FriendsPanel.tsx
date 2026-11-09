@@ -63,22 +63,22 @@ function FriendsPanel() {
   // hakutuloksen painike riippuu siitä, missä tilassa käyttäjä on
   const renderAction = (user: Friend) => {
     if (friends.some((f) => f.id === user.id)) {
-      return <Button size="small" disabled>Kaveri</Button>;
+      return <Button size="small" disabled>Friend</Button>;
     }
     if (outgoing.some((r) => r.user.id === user.id)) {
-      return <Button size="small" disabled>Pyyntö lähetetty</Button>;
+      return <Button size="small" disabled>Friend request sent</Button>;
     }
     const received = incoming.find((r) => r.user.id === user.id);
     if (received) {
       return (
         <Button size="small" onClick={() => run(() => acceptRequest(received.id))}>
-          Hyväksy
+          Accept
         </Button>
       );
     }
     return (
       <Button size="small" onClick={() => run(() => sendRequest(user.id))}>
-        Lisää
+        Add
       </Button>
     );
   };
@@ -88,13 +88,14 @@ function FriendsPanel() {
       {/* käyttäjähaku */}
       <form onSubmit={handleSearch} style={{ display: 'flex', gap: 8 }}>
         <TextField
-          label="Hae käyttäjänimellä"
+          sx={{ mt: 1 }}
+          label="Search by username"
           size="small"
           fullWidth
           value={query}
           onChange={(e) => setQuery(e.target.value)}
         />
-        <Button type="submit" variant="contained">Hae</Button>
+        <Button type="submit" variant="contained">Search</Button>
       </form>
 
       {message && (
@@ -116,7 +117,7 @@ function FriendsPanel() {
       {incoming.length > 0 && (
         <>
           <Typography variant="subtitle1" sx={{ mt: 2 }}>
-            Saapuneet pyynnöt ({incoming.length})
+            Incoming requests ({incoming.length})
           </Typography>
           <List dense>
             {incoming.map((request) => (
@@ -125,10 +126,10 @@ function FriendsPanel() {
                 secondaryAction={
                   <>
                     <Button size="small" onClick={() => run(() => acceptRequest(request.id))}>
-                      Hyväksy
+                      Accept
                     </Button>
                     <Button size="small" color="error" onClick={() => run(() => deleteRequest(request.id))}>
-                      Hylkää
+                      Decline
                     </Button>
                   </>
                 }
@@ -144,7 +145,7 @@ function FriendsPanel() {
       {outgoing.length > 0 && (
         <>
           <Typography variant="subtitle1" sx={{ mt: 2 }}>
-            Lähetetyt pyynnöt ({outgoing.length})
+            Sent requests({outgoing.length})
           </Typography>
           <List dense>
             {outgoing.map((request) => (
@@ -152,7 +153,7 @@ function FriendsPanel() {
                 key={request.id}
                 secondaryAction={
                   <Button size="small" color="error" onClick={() => run(() => deleteRequest(request.id))}>
-                    Peruuta
+                    Cancel
                   </Button>
                 }
               >
@@ -165,7 +166,7 @@ function FriendsPanel() {
 
       {/* kaverilista */}
       <Typography variant="subtitle1" sx={{ mt: 2 }}>
-        Kaverit ({friends.length})
+        Friends ({friends.length})
       </Typography>
       <List dense>
         {friends.map((friend) => (
@@ -174,7 +175,7 @@ function FriendsPanel() {
             secondaryAction={
               <IconButton
                 edge="end"
-                aria-label='Poista kaveri'
+                aria-label='Delete friend'
                 onClick={() => run(() => removeFriend(friend.id))}
               >
                 <DeleteIcon />
@@ -186,7 +187,7 @@ function FriendsPanel() {
         ))}
         {friends.length === 0 && (
           <Typography variant="body2" color="text.secondary">
-            Ei vielä kavereita
+            No friends yet
           </Typography>
         )}
       </List>

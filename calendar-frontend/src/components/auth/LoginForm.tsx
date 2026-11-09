@@ -147,22 +147,22 @@ function LoginForm({ onLoggedIn }: LoginFormProps) {
       saveUsername(username);
       onLoggedIn(username);
     } catch {
-      setError(mode === 'login' ? 'Väärä käyttäjätunnus tai salasana' : 'Rekisteröinti epäonnistui');
+      setError(mode === 'login' ? 'Wrong user name or password' : 'Registering failed');
     }
   };
 
   return (
     <Box sx={{ maxWidth: 360, margin: '80px auto', padding: 3 }}>
-      <Typography variant="h5" sx={{ mb: 2 }}>Kalenteri</Typography>
+      <Typography variant="h5" sx={{ mb: 2 }}>Calendar</Typography>
 
       <Tabs value={mode} onChange={(_, value) => setMode(value)} sx={{ mb: 2 }}>
-        <Tab label="Kirjaudu" value="login" />
-        <Tab label="Rekisteröidy" value="register" />
+        <Tab label="Log In" value="login" />
+        <Tab label="Register" value="register" />
       </Tabs>
 
       <form onSubmit={handleSubmit}>
         <TextField
-          label="Käyttäjätunnus"
+          label="User name"
           fullWidth
           margin="normal"
           value={username}
@@ -172,7 +172,7 @@ function LoginForm({ onLoggedIn }: LoginFormProps) {
 
         {mode === 'register' && (
           <TextField
-            label="Sähköposti"
+            label="E-mail"
             type="email"
             fullWidth
             margin="normal"
@@ -183,7 +183,7 @@ function LoginForm({ onLoggedIn }: LoginFormProps) {
         )}
 
         <TextField
-          label="Salasana"
+          label="Password"
           type="password"
           fullWidth
           margin="normal"
@@ -199,7 +199,7 @@ function LoginForm({ onLoggedIn }: LoginFormProps) {
         )}
 
         <Button type="submit" variant="contained" fullWidth sx={{ mt: 2 }}>
-          {mode === 'login' ? 'Kirjaudu' : 'Rekisteröidy'}
+          {mode === 'login' ? 'Log in' : 'Register'}
         </Button>
       </form>
 

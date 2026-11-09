@@ -140,9 +140,9 @@ function AddEventForm({ onCreated, onCancel }: AddEventFormProps) {
                     onChange={(_event, value) => setSelectedFriends(value)}
                     getOptionLabel={(friend) => friend.username}
                     isOptionEqualToValue={(option, value) => option.id === value.id}
-                    noOptionsText="Ei kavereita"
+                    noOptionsText="No friends"
                     renderInput={(params) => (
-                        <TextField {...params} placeholder="Kutsu kavereita (valinnainen)" />
+                        <TextField {...params} placeholder="Invite friends (optional)" /> 
                     )}
                 />
             </Box>
