@@ -22,13 +22,14 @@ Projektin tarkoituksena on helpottaa omien menojen suunnittelua ja ratkaisemaan 
 - Lisätä, Poistaa ja Muokata tapahtumia.
 - Mahdollisuus laittaa ToDo lista, joka sitten lisätään automaattisesti kalenteriin.
 - Henkilökohtaisten tunnuksien tekeminen.
+- Kavereiden lisäys.
 - Voi kutsua muita käyttäjiä omiin tapahtumiin tai järjestää tapahtuman, joka näkyy kaikille ja näyttää kaikki osallistujat.
 
 # Käytetyt teknologiat
 - Springboot
 - React
 - mySQL
-- Joku pilvi sovellus kuten render
+- Rahti pilvipalvelu
 
 # Backlog
 [Link to Backlog](https://github.com/orgs/OP2-Syntax/projects/1)
