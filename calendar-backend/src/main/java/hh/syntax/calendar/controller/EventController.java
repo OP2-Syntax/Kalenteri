@@ -49,7 +49,8 @@ public class EventController {
                 event.getEndTime(),
                 event.getOwner().getUsername(),
                 event.getOwner().getId().equals(currentUser.getId()),
-                participants);
+                participants,
+                event.getColor());
     }
 
     private Set<User> resolveParticipants(User owner, List<Long> participantIds) {
@@ -124,6 +125,7 @@ public class EventController {
         event.setDescription(request.description());
         event.setStartTime(request.startTime());
         event.setEndTime(request.endTime());
+        event.setColor(request.color());
         event.setOwner(currentUser);
         event.setParticipants(participants);
         return ResponseEntity.ok(toResponse(eventRepository.save(event), currentUser));
@@ -183,6 +185,9 @@ public class EventController {
         event.setDescription(request.description());
         event.setStartTime(request.startTime());
         event.setEndTime(request.endTime());
+        if (request.color() !=null) {
+            event.setColor(request.color());
+        }
         return ResponseEntity.ok(toResponse(eventRepository.save(event), currentUser));
     }
 

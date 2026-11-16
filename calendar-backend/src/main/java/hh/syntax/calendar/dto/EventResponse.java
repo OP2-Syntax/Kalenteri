@@ -11,4 +11,5 @@ public record EventResponse(
         LocalDateTime endTime,
         String ownerUsername,
         boolean mine,
-        List<UserDto> participants) {}
+        List<UserDto> participants,
+        String color) {}

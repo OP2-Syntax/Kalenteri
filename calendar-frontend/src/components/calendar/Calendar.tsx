@@ -123,6 +123,7 @@ function Calendar() {
           description: addedEvent.description ?? '',
           startTime: toLocalDateTime(addedEvent.start),
           endTime: toLocalDateTime(addedEvent.end),
+          ...(addedEvent.color ? {color: String(addedEvent.color) } : {})
         });
 
         setEvents((prev) => [
@@ -165,7 +166,8 @@ function Calendar() {
         oldEvent.title !== newEvent.title ||
         oldEvent.description !== newEvent.description ||
         oldEvent.start !== newEvent.start ||
-        oldEvent.end !== newEvent.end
+        oldEvent.end !== newEvent.end ||
+        oldEvent.color !== newEvent.color
       );
     });
 
@@ -175,7 +177,8 @@ function Calendar() {
           title: changedEvent.title,
           description: changedEvent.description ?? "",
           startTime: String(changedEvent.start),
-          endTime: String(changedEvent.end)
+          endTime: String(changedEvent.end),
+          ...(changedEvent.color ? {color: String(changedEvent.color)} : {})
         });
         setEvents(newEvents);
       } catch (error) {

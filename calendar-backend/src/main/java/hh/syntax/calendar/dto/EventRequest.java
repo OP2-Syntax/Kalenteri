@@ -8,4 +8,5 @@ public record EventRequest(
         String description,
         LocalDateTime startTime,
         LocalDateTime endTime,
-        List<Long> participantIds) {}
+        List<Long> participantIds,
+        String color) {}

@@ -28,6 +28,9 @@ public class Event {
 
     private LocalDateTime endTime;
 
+    @Column(length = 30)
+    private String color;
+
     // owner ei näy JSON-vastauksessa (piilotetaan käyttäjän tiedot, kuten salasana)
     @JsonIgnore
     @ManyToOne
