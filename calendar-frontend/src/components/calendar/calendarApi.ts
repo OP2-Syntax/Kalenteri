@@ -9,6 +9,7 @@ interface BackendEvent {
   description: string;
   startTime: string;
   endTime: string;
+  color?: string | null;
   ownerUsername?: string;
   mine?: boolean;
   participants?: Friend[];
@@ -19,6 +20,7 @@ interface CreateEventData {
   description: string;
   startTime: string;
   endTime: string;
+  color?: string;
   participantIds?: number[];
 }
 
@@ -55,6 +57,7 @@ export async function getEvents(): Promise<CalendarEvent[]> {
     description: event.description,
     start: event.startTime,
     end: event.endTime,
+    ...(event.color ? {color: event.color as CalendarEvent["color"]} : {}),
     ...(event.ownerUsername !== undefined ? { ownerUsername: event.ownerUsername } : {}),
     ...(event.mine !== undefined ? { mine: event.mine } : {}),
     ...(event.participants !== undefined ? { participants: event.participants } : {}),
@@ -86,6 +89,7 @@ export async function createEvent(event: CreateEventData): Promise<CalendarEvent
     description: createdEvent.description,
     start: createdEvent.startTime,
     end: createdEvent.endTime,
+    ...(createdEvent.color ? {color: createdEvent.color as CalendarEvent["color"]} : {}),
     ...(createdEvent.ownerUsername !== undefined ? { ownerUsername: createdEvent.ownerUsername } : {}),
     ...(createdEvent.mine !== undefined ? { mine: createdEvent.mine } : {}),
     ...(createdEvent.participants !== undefined ? { participants: createdEvent.participants } : {}),
@@ -100,6 +104,7 @@ export async function updateEvent(
     description: string;
     startTime: string;
     endTime: string;
+    color?: string;
   }
 ): Promise<CalendarEvent> {
   const response = await fetch(`${BACKEND_URL}/api/events/shared/${id}`,
@@ -125,6 +130,7 @@ export async function updateEvent(
     description: updatedEvent.description,
     start: updatedEvent.startTime,
     end: updatedEvent.endTime,
+    ...(updatedEvent.color ? { color: updatedEvent.color as CalendarEvent['color'] } : {}),
     ...(updatedEvent.ownerUsername !== undefined ? { ownerUsername: updatedEvent.ownerUsername } : {}),
     ...(updatedEvent.mine !== undefined ? { mine: updatedEvent.mine } : {}),
     ...(updatedEvent.participants !== undefined ? { participants: updatedEvent.participants } : {}),
@@ -163,6 +169,7 @@ export async function addParticipant(eventId: number, userId: number): Promise<C
     description: event.description,
     start: event.startTime,
     end: event.endTime,
+    ...(event.color ? { color: event.color as CalendarEvent['color'] } : {}),
     ownerUsername: event.ownerUsername,
     mine: event.mine,
     participants: event.participants,
