@@ -4,6 +4,11 @@ import { createEvent } from './calendarApi';
 import { Autocomplete, Box, Button, TextField } from '@mui/material';
 import type { CalendarEvent } from './calendarApi';
 import { getFriends, type Friend } from '../friends/friendsApi';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { TimePicker } from '@mui/x-date-pickers/TimePicker';
+import type { Dayjs } from 'dayjs';
 
 interface AddEventFormProps {
     onCreated: (event: CalendarEvent) => void;
@@ -14,10 +19,10 @@ function AddEventForm({ onCreated, onCancel }: AddEventFormProps) {
 
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
-    const [startDate, setStartDate] = useState('')
-    const [startTime, setStartTime] = useState('');
-    const [endDate, setEndDate] = useState('')
-    const [endTime, setEndTime] = useState('');
+    const [startDate, setStartDate] = useState<Dayjs | null>(null)
+    const [startTime, setStartTime] = useState<Dayjs | null>(null);
+    const [endDate, setEndDate] = useState<Dayjs | null>(null)
+    const [endTime, setEndTime] = useState<Dayjs | null>(null);
     const [friends, setFriends] = useState<Friend[]>([]);
     const [selectedFriends, setSelectedFriends] = useState<Friend[]>([]);
 
@@ -31,8 +36,10 @@ function AddEventForm({ onCreated, onCancel }: AddEventFormProps) {
 
         e.preventDefault();
 
-        const startDateTime = `${startDate}T${startTime}`;
-        const endDateTime = `${endDate}T${endTime}`;
+        if (!startDate || !startTime || !endDate || !endTime) return;
+
+        const endDateTime = `${endDate.format('YYYY-MM-DD')}T${endTime.format('HH:mm')}`;
+        const startDateTime = `${startDate.format('YYYY-MM-DD')}T${startTime.format('HH:mm')}`;
 
         try {
             const newEvent = await createEvent({
@@ -48,10 +55,10 @@ function AddEventForm({ onCreated, onCancel }: AddEventFormProps) {
 
             setTitle("");
             setDescription("");
-            setStartTime("");
-            setStartDate("")
-            setEndTime("");
-            setEndDate("");
+            setStartTime(null);
+            setStartDate(null)
+            setEndTime(null);
+            setEndDate(null);
             setSelectedFriends([]);
         } catch (error) {
             console.error("Tapahtuman lisääminen epöonnistui: ", error);
@@ -59,6 +66,7 @@ function AddEventForm({ onCreated, onCancel }: AddEventFormProps) {
     };
 
     return (
+        <LocalizationProvider dateAdapter={AdapterDayjs}> 
         <Box
             component="form"
             onSubmit={handleSubmit}
@@ -92,41 +100,35 @@ function AddEventForm({ onCreated, onCancel }: AddEventFormProps) {
 
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                 <label style={{width:110}}>Start Time:</label>
-                <TextField
-                    style={{width:150}}
-                    type="date"
+                <DatePicker
+                    label="Start Date"
                     value={startDate}
-                    onChange={(event) => setStartDate(event.target.value)}
-                    required
-                    fullWidth
+                    onChange={(value) => setStartDate(value)}
+                    sx={{ width: 150}}
                 />
 
-                <TextField
-                    style={{width:120}}
-                    type='time'
+                <TimePicker
+                    label="Start Time"
                     value={startTime}
-                    onChange={(event) => setStartTime(event.target.value)}
-                    required
+                    onChange={(value) => setStartTime(value)}
+                    sx= {{ width:120}}
                 />
             </Box>
 
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                 <label style={{width:110}}>End Time:</label>
-                <TextField
-                    style={{width:150}}
-                    type="date"
+                <DatePicker
+                    label="End Date"
                     value={endDate}
-                    onChange={(event) => setEndDate(event.target.value)}
-                    required
-                    fullWidth
+                    onChange={(value) => setEndDate(value)}
+                    sx= {{ width: 150}}
                 />
 
-                <TextField
-                    style={{width:120}}
-                    type='time'
+                <TimePicker
+                    label="End Time"
                     value={endTime}
-                    onChange={(event) => setEndTime(event.target.value)}
-                    required
+                    onChange={(value) => setEndTime(value)}
+                    sx= {{width: 120}}
                 />
             </Box>
 
@@ -157,6 +159,7 @@ function AddEventForm({ onCreated, onCancel }: AddEventFormProps) {
 
             </Box>
         </Box>
+        </LocalizationProvider>
     );
 }
 
