@@ -72,3 +72,5 @@ Testejä voi ajaa myös jatkuvassa watch-tilassa komennolla `npm run test:watch`
 # Tietokantakaavio
 <img width="433" height="329" alt="image" src="https://github.com/user-attachments/assets/ecfb339a-5717-4c43-ac2a-6e7f0f1effa8" />
 
+# Lisenssi
+Kalenteri on lisensoitu MIT-lisenssin mukaisesti (./LICENSE.md).
