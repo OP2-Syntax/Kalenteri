@@ -7,6 +7,7 @@ import { type ComponentProps, type MouseEvent as ReactMouseEvent } from 'react';
 
 import AddEventForm from './AddEventForm';
 import EventParticipantsDialog from './EventParticipantsDialog';
+import VotingDialog from './VotingDialog';
 import {
   Box,
   Button,
@@ -49,6 +50,7 @@ function Calendar() {
 
   const [open, setOpen] = useState(false);
   const [participantsOpen, setParticipantsOpen] = useState(false);
+  const [votingOpen, setVotingOpen] = useState(false);
   const [monthPickerOpen, setMonthPickerOpen] = useState(false);
   const [selectedYear, setSelectedYear] = useState(
     new Date().getFullYear()
@@ -107,6 +109,11 @@ function Calendar() {
     setEvents((prev) =>
       prev.map((event) => (event.id === changed.id ? { ...event, participants: changed.participants } : event))
     );
+  };
+
+  // omistaja vahvisti ajan: päivitetään tapahtuman aika ja äänestyksen tila kalenteriin
+  const handleVotingConfirmed = (changed: CalendarEvent) => {
+    setEvents((prev) => prev.map((event) => (event.id === changed.id ? { ...event, ...changed } : event)));
   };
 
   const handleEventsChange = async (newEvents: CalendarEvent[]) => {
@@ -244,7 +251,20 @@ function Calendar() {
         >
           Friends in Events
         </Button>
+        <Button
+          variant="outlined"
+          onClick={() => setVotingOpen(true)}
+        >
+          Voting
+        </Button>
       </Box>
+
+      <VotingDialog
+        open={votingOpen}
+        onClose={() => setVotingOpen(false)}
+        events={events.filter((event) => event.votingStatus && event.votingStatus !== 'NONE')}
+        onEventChanged={handleVotingConfirmed}
+      />
 
       <EventParticipantsDialog
         open={participantsOpen}

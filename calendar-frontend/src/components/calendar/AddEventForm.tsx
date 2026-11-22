@@ -1,9 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import { createEvent } from './calendarApi';
 //import type { SchedulerEvent } from '@mui/x-scheduler/models';
-import { Autocomplete, Box, Button, TextField } from '@mui/material';
+import { Alert, Autocomplete, Box, Button, FormControlLabel, Switch, TextField } from '@mui/material';
 import type { CalendarEvent } from './calendarApi';
 import { getFriends, type Friend } from '../friends/friendsApi';
+import { setVoting } from './votingApi';
+
+// yksi äänestettävä ajankohta lomakkeella (datetime-local-muodossa)
+interface OptionRow {
+    start: string;
+    end: string;
+}
+
+const emptyOption = (): OptionRow => ({ start: '', end: '' });
 
 interface AddEventFormProps {
     onCreated: (event: CalendarEvent) => void;
@@ -20,6 +29,10 @@ function AddEventForm({ onCreated, onCancel }: AddEventFormProps) {
     const [endTime, setEndTime] = useState('');
     const [friends, setFriends] = useState<Friend[]>([]);
     const [selectedFriends, setSelectedFriends] = useState<Friend[]>([]);
+    // äänestystila: kiinteän ajan sijaan annetaan vaihtoehdot
+    const [voteMode, setVoteMode] = useState(false);
+    const [options, setOptions] = useState<OptionRow[]>([emptyOption(), emptyOption()]);
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
     useEffect(() => {
         getFriends()
@@ -31,11 +44,26 @@ function AddEventForm({ onCreated, onCancel }: AddEventFormProps) {
 
         e.preventDefault();
 
-        const startDateTime = `${startDate}T${startTime}`;
-        const endDateTime = `${endDate}T${endTime}`;
+        setErrorMessage(null);
+
+        // tarkistetaan äänestyksen tiedot ennen tapahtuman luontia, ettei tapahtuma jää ilman äänestystä
+        if (voteMode) {
+            if (options.some((option) => option.end <= option.start)) {
+                setErrorMessage('Each option must end after it starts');
+                return;
+            }
+            if (new Set(options.map((option) => `${option.start}|${option.end}`)).size !== options.length) {
+                setErrorMessage('Options must be different from each other');
+                return;
+            }
+        }
+
+        // äänestystilassa tapahtuman alustava aika on ensimmäinen vaihtoehto
+        const startDateTime = voteMode ? options[0].start : `${startDate}T${startTime}`;
+        const endDateTime = voteMode ? options[0].end : `${endDate}T${endTime}`;
 
         try {
-            const newEvent = await createEvent({
+            let newEvent = await createEvent({
                 title,
                 description,
                 startTime: startDateTime,
@@ -44,6 +72,21 @@ function AddEventForm({ onCreated, onCancel }: AddEventFormProps) {
                     ? { participantIds: selectedFriends.map((friend) => friend.id) }
                     : {}),
             });
+
+            if (voteMode) {
+                try {
+                    await setVoting(
+                        Number(newEvent.id),
+                        options.map((option) => ({ startTime: option.start, endTime: option.end }))
+                    );
+                    newEvent = { ...newEvent, votingStatus: 'OPEN' };
+                } catch (votingError) {
+                    // tapahtuma luotiin, mutta äänestys ei: kerrotaan käyttäjälle
+                    onCreated(newEvent);
+                    console.error("Äänestyksen luominen epäonnistui: ", votingError);
+                    return;
+                }
+            }
             onCreated(newEvent);
 
             setTitle("");
@@ -53,8 +96,11 @@ function AddEventForm({ onCreated, onCancel }: AddEventFormProps) {
             setEndTime("");
             setEndDate("");
             setSelectedFriends([]);
+            setVoteMode(false);
+            setOptions([emptyOption(), emptyOption()]);
         } catch (error) {
             console.error("Tapahtuman lisääminen epöonnistui: ", error);
+            setErrorMessage(error instanceof Error ? error.message : 'Tapahtuman lisääminen epäonnistui');
         }
     };
 
@@ -90,6 +136,8 @@ function AddEventForm({ onCreated, onCancel }: AddEventFormProps) {
                 />
             </Box>
 
+            {!voteMode && (
+                <>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                 <label style={{width:110}}>Start Time:</label>
                 <TextField
@@ -130,6 +178,63 @@ function AddEventForm({ onCreated, onCancel }: AddEventFormProps) {
                 />
             </Box>
 
+                </>
+            )}
+
+            <FormControlLabel
+                control={
+                    <Switch
+                        checked={voteMode}
+                        onChange={(event) => setVoteMode(event.target.checked)}
+                    />
+                }
+                label="Let friends vote on the time"
+            />
+
+            {voteMode && (
+                <>
+                    {options.map((option, index) => (
+                        <Box key={index} sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                            <label style={{width:110}}>Option {index + 1}:</label>
+                            <TextField
+                                type="datetime-local"
+                                value={option.start}
+                                onChange={(event) =>
+                                    setOptions((prev) => prev.map((row, i) => (i === index ? { ...row, start: event.target.value } : row)))
+                                }
+                                required
+                                slotProps={{ htmlInput: { 'aria-label': `Option ${index + 1} start` } }}
+                            />
+                            <TextField
+                                type="datetime-local"
+                                value={option.end}
+                                onChange={(event) =>
+                                    setOptions((prev) => prev.map((row, i) => (i === index ? { ...row, end: event.target.value } : row)))
+                                }
+                                required
+                                slotProps={{ htmlInput: { 'aria-label': `Option ${index + 1} end` } }}
+                            />
+                            <Button
+                                type="button"
+                                disabled={options.length <= 2}
+                                onClick={() => setOptions((prev) => prev.filter((_row, i) => i !== index))}
+                            >
+                                Remove
+                            </Button>
+                        </Box>
+                    ))}
+                    <Box>
+                        <Button
+                            type="button"
+                            disabled={options.length >= 10}
+                            onClick={() => setOptions((prev) => [...prev, emptyOption()])}
+                        >
+                            Add option
+                        </Button>
+                    </Box>
+                </>
+            )}
+
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                 <label style={{width:150}}>Friends:</label>
                 <Autocomplete
@@ -146,6 +251,8 @@ function AddEventForm({ onCreated, onCancel }: AddEventFormProps) {
                     )}
                 />
             </Box>
+
+            {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
 
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
                 <Button type="button" onClick={onCancel}>

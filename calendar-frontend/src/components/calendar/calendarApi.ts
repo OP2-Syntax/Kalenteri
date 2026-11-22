@@ -1,19 +1,5 @@
-import type { SchedulerEvent } from '@mui/x-scheduler/models';
 import { BACKEND_URL, getToken } from '../../authApi';
-import type { Friend } from '../friends/friendsApi';
-
-// Backendin palauttaman tapahtuman muoto (Event.java:n kentät)
-interface BackendEvent {
-  id: number;
-  title: string;
-  description: string;
-  startTime: string;
-  endTime: string;
-  color?: string | null;
-  ownerUsername?: string;
-  mine?: boolean;
-  participants?: Friend[];
-}
+import { toCalendarEvent, type BackendEvent, type CalendarEvent } from './eventMapper';
 
 interface CreateEventData {
   title: string;
@@ -24,12 +10,7 @@ interface CreateEventData {
   participantIds?: number[];
 }
 
-export interface CalendarEvent extends SchedulerEvent {
-  description: string;
-  ownerUsername?: string;
-  mine?: boolean;
-  participants?: Friend[];
-}
+export type { CalendarEvent } from './eventMapper';
   
 // lisää Authorization-headerin, jos token löytyy
 function authHeaders(): HeadersInit {
@@ -51,17 +32,7 @@ export async function getEvents(): Promise<CalendarEvent[]> {
 
    const data: BackendEvent[] = await response.json();
 
-   return data.map((event) => ({
-    id: event.id,
-    title: event.title,
-    description: event.description,
-    start: event.startTime,
-    end: event.endTime,
-    ...(event.color ? {color: event.color as CalendarEvent["color"]} : {}),
-    ...(event.ownerUsername !== undefined ? { ownerUsername: event.ownerUsername } : {}),
-    ...(event.mine !== undefined ? { mine: event.mine } : {}),
-    ...(event.participants !== undefined ? { participants: event.participants } : {}),
-  }));
+  return data.map(toCalendarEvent);
 }
 
 //POST
@@ -83,17 +54,7 @@ export async function createEvent(event: CreateEventData): Promise<CalendarEvent
 
   const createdEvent: BackendEvent = await response.json();
 
-  return {
-    id: createdEvent.id,
-    title: createdEvent.title,
-    description: createdEvent.description,
-    start: createdEvent.startTime,
-    end: createdEvent.endTime,
-    ...(createdEvent.color ? {color: createdEvent.color as CalendarEvent["color"]} : {}),
-    ...(createdEvent.ownerUsername !== undefined ? { ownerUsername: createdEvent.ownerUsername } : {}),
-    ...(createdEvent.mine !== undefined ? { mine: createdEvent.mine } : {}),
-    ...(createdEvent.participants !== undefined ? { participants: createdEvent.participants } : {}),
-  };
+  return toCalendarEvent(createdEvent);
 }
 
 //PUT
@@ -124,17 +85,7 @@ export async function updateEvent(
   }
   const updatedEvent: BackendEvent = await response.json();
 
-  return {
-    id: updatedEvent.id,
-    title: updatedEvent.title,
-    description: updatedEvent.description,
-    start: updatedEvent.startTime,
-    end: updatedEvent.endTime,
-    ...(updatedEvent.color ? { color: updatedEvent.color as CalendarEvent['color'] } : {}),
-    ...(updatedEvent.ownerUsername !== undefined ? { ownerUsername: updatedEvent.ownerUsername } : {}),
-    ...(updatedEvent.mine !== undefined ? { mine: updatedEvent.mine } : {}),
-    ...(updatedEvent.participants !== undefined ? { participants: updatedEvent.participants } : {}),
-  };
+  return toCalendarEvent(updatedEvent);
 }
 
 //DELETE
@@ -163,17 +114,7 @@ export async function addParticipant(eventId: number, userId: number): Promise<C
     throw new Error("Kaverin lisäys tapahtumaan epäonnistui: " + response.status);
   }
   const event: BackendEvent = await response.json();
-  return {
-    id: event.id,
-    title: event.title,
-    description: event.description,
-    start: event.startTime,
-    end: event.endTime,
-    ...(event.color ? { color: event.color as CalendarEvent['color'] } : {}),
-    ownerUsername: event.ownerUsername,
-    mine: event.mine,
-    participants: event.participants,
-  };
+  return toCalendarEvent(event);
 }
 
 export async function removeParticipant(eventId: number, userId: number): Promise<void> {
