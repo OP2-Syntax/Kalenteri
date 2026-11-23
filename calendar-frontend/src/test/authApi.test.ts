@@ -26,7 +26,7 @@ describe('authApi', () => {
 
   it('login heittää virheen, jos vastaus ei ole ok', async () => {
     mockFetch(false);
-    await expect(login('testi', 'vaara')).rejects.toThrow('Kirjautuminen epäonnistui');
+    await expect(login('testi', 'vaara')).rejects.toThrow('Login failed');
   });
 
   it('register palauttaa tokenin ja lähettää sähköpostin', async () => {
@@ -46,7 +46,7 @@ describe('authApi', () => {
 
   it('register heittää virheen, jos vastaus ei ole ok', async () => {
     mockFetch(false);
-    await expect(register('a', 'b@c.fi', 'd')).rejects.toThrow('Rekisteröinti epäonnistui');
+    await expect(register('a', 'b@c.fi', 'd')).rejects.toThrow('Registration failed');
   });
 
   it('token tallennetaan, haetaan ja poistetaan localStoragesta', () => {

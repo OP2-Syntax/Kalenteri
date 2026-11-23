@@ -24,7 +24,7 @@ function AddEventForm({ onCreated, onCancel }: AddEventFormProps) {
     useEffect(() => {
         getFriends()
             .then(setFriends)
-            .catch((error) => console.error("Kaverilistan haku epäonnistui: ", error));
+            .catch((error) => console.error('Friend list loading failed: ', error));
     }, []);
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -54,7 +54,7 @@ function AddEventForm({ onCreated, onCancel }: AddEventFormProps) {
             setEndDate("");
             setSelectedFriends([]);
         } catch (error) {
-            console.error("Tapahtuman lisääminen epöonnistui: ", error);
+            console.error('Event creation failed: ', error);
         }
     };
 

@@ -45,7 +45,7 @@ function FriendsPanel() {
       await action();
       await refresh();
     } catch (err) {
-      setMessage(err instanceof Error ? err.message : 'Tuntematon virhe');
+      setMessage(err instanceof Error ? err.message : 'Unknown error');
     }
   };
 
@@ -56,7 +56,7 @@ function FriendsPanel() {
     try {
       setResults(await searchUsers(query));
     } catch (err) {
-      setMessage(err instanceof Error ? err.message : 'Tuntematon virhe');
+      setMessage(err instanceof Error ? err.message : 'Unknown error');
     }
   };
 

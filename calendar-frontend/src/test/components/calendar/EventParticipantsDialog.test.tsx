@@ -57,7 +57,7 @@ describe('EventParticipantsDialog', () => {
   });
 
   it('näyttää virheen, kun kutsun lisääminen epäonnistuu', async () => {
-    vi.mocked(addParticipant).mockRejectedValue(new Error('Lisäys epäonnistui'));
+    vi.mocked(addParticipant).mockRejectedValue(new Error('Adding friend failed'));
     const user = userEvent.setup();
     render(<EventParticipantsDialog open onClose={vi.fn()} events={[event]} onEventChanged={vi.fn()} />);
 
@@ -65,6 +65,6 @@ describe('EventParticipantsDialog', () => {
     await user.click(screen.getByRole('combobox'));
     await user.click(await screen.findByRole('option', { name: 'kaveri' }));
 
-    expect(await screen.findByText('Lisäys epäonnistui')).toBeInTheDocument();
+    expect(await screen.findByText('Adding friend failed')).toBeInTheDocument();
   });
 });

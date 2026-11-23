@@ -33,7 +33,7 @@ function EventParticipantsDialog({ open, onClose, events, onEventChanged }: Even
     setMessage(null);
     getFriends()
       .then(setFriends)
-      .catch((error: unknown) => setMessage(error instanceof Error ? error.message : 'Tuntematon virhe'));
+      .catch((error: unknown) => setMessage(error instanceof Error ? error.message : 'Unknown error'));
   }, [open]);
 
   const handleAdd = async (event: CalendarEvent, friend: Friend) => {
@@ -41,7 +41,7 @@ function EventParticipantsDialog({ open, onClose, events, onEventChanged }: Even
     try {
       onEventChanged(await addParticipant(Number(event.id), friend.id));
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : 'Tuntematon virhe');
+      setMessage(error instanceof Error ? error.message : 'Unknown error');
     }
   };
 
@@ -54,7 +54,7 @@ function EventParticipantsDialog({ open, onClose, events, onEventChanged }: Even
         participants: (event.participants ?? []).filter((participant) => participant.id !== friend.id),
       });
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : 'Tuntematon virhe');
+      setMessage(error instanceof Error ? error.message : 'Unknown error');
     }
   };
 

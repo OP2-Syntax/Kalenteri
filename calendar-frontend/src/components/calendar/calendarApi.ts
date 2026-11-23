@@ -45,7 +45,7 @@ export async function getEvents(): Promise<CalendarEvent[]> {
 
   if (!response.ok) {
     throw new Error(
-      'Palvelin vastasi virheellä: ' + response.status
+      'Server responded with error: ' + response.status
     );
   }
 
@@ -77,7 +77,7 @@ export async function createEvent(event: CreateEventData): Promise<CalendarEvent
 
   if (!response.ok) {
     throw new Error(
-      "Tapahtuman lisäys epäonnistui:" + response.status
+      'Event creation failed: ' + response.status
     );
   }
 
@@ -119,7 +119,7 @@ export async function updateEvent(
   );
   if (!response.ok) {
     throw new Error(
-      "Tapahtuman päivitys epäonnistui: " + response.status
+      'Event update failed: ' + response.status
     );
   }
   const updatedEvent: BackendEvent = await response.json();
@@ -149,7 +149,7 @@ export async function deleteEvent(id:number): Promise<void> {
   );
   if (!response.ok) {
     throw new Error(
-      "Tapahtuman poisto epäonnistui: " + response.status 
+      'Event deletion failed: ' + response.status
     );
   }
 }
@@ -160,7 +160,7 @@ export async function addParticipant(eventId: number, userId: number): Promise<C
     headers: authHeaders(),
   });
   if (!response.ok) {
-    throw new Error("Kaverin lisäys tapahtumaan epäonnistui: " + response.status);
+    throw new Error('Adding friend to event failed: ' + response.status);
   }
   const event: BackendEvent = await response.json();
   return {
@@ -182,6 +182,6 @@ export async function removeParticipant(eventId: number, userId: number): Promis
     headers: authHeaders(),
   });
   if (!response.ok) {
-    throw new Error("Osallistujan poisto epäonnistui: " + response.status);
+    throw new Error('Removing participant failed: ' + response.status);
   }
 }

@@ -130,8 +130,9 @@ function Calendar() {
           ...prev.filter((event) => event.id !== addedEvent.id),
           savedEvent,
         ]);
+        setParticipantsOpen(true);
       } catch (error) {
-        console.error("Tapahtuman tallennus epäonnistui: ", error)
+        console.error('Event save failed: ', error)
       }
       return;
     }
@@ -147,7 +148,7 @@ function Calendar() {
         await deleteEvent(Number(deletedEvent.id));
         setEvents(newEvents);
       } catch (error) {
-        console.error("Tapahtuman poisto epäonnistui: ", error);
+        console.error('Event deletion failed: ', error);
       }
       return;
     }
@@ -182,7 +183,7 @@ function Calendar() {
         });
         setEvents(newEvents);
       } catch (error) {
-        console.error("Tapahtuman muokkaaminen epäonnistui: ", error);
+        console.error('Event update failed: ', error);
       }
       return;
     }

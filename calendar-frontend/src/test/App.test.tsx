@@ -12,7 +12,7 @@ describe('App', () => {
   it('näyttää kirjautumislomakkeen, kun tokenia ei ole', () => {
     render(<App />);
 
-    expect(screen.getByRole('button', { name: 'Kirjaudu' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Log in' })).toBeInTheDocument();
     expect(screen.queryByText('Kalenterinäkymä')).not.toBeInTheDocument();
   });
 
@@ -28,10 +28,11 @@ describe('App', () => {
     const user = userEvent.setup();
     render(<App />);
 
-    await user.click(screen.getByRole('button', { name: 'Kirjaudu ulos' }));
+    await user.click(screen.getByRole('button', { name: 'Open account menu' }));
+    await user.click(await screen.findByRole('menuitem', { name: 'Log Out' }));
 
     expect(localStorage.getItem('token')).toBeNull();
-    expect(screen.getByRole('button', { name: 'Kirjaudu' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Log in' })).toBeInTheDocument();
   });
 
   it('teemapainike vaihtaa tumman ja vaalean tilan välillä', async () => {
@@ -39,7 +40,9 @@ describe('App', () => {
     const user = userEvent.setup();
     render(<App />);
 
-    await user.click(screen.getByRole('button', { name: 'Dark Mode' }));
-    expect(screen.getByRole('button', { name: 'Light Mode' })).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Open account menu' }));
+    await user.click(await screen.findByRole('menuitem', { name: 'Dark Mode' }));
+    await user.click(screen.getByRole('button', { name: 'Open account menu' }));
+    expect(await screen.findByRole('menuitem', { name: 'Light Mode' })).toBeInTheDocument();
   });
 });

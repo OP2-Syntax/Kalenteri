@@ -13,7 +13,7 @@ export async function login(username: string, password: string): Promise<string>
   });
 
   if (!response.ok) {
-    throw new Error('Kirjautuminen epäonnistui');
+    throw new Error('Login failed');
   }
 
   const data: AuthResponse = await response.json();
@@ -29,7 +29,7 @@ export async function loginWithGoogle(credential: string): Promise<string> {
   });
 
   if (!response.ok) {
-    throw new Error('Google-kirjautuminen epäonnistui');
+    throw new Error('Google sign-in failed');
   }
 
   const data: AuthResponse = await response.json();
@@ -45,7 +45,7 @@ export async function register(username: string, email: string, password: string
   });
 
   if (!response.ok) {
-    throw new Error('Rekisteröinti epäonnistui');
+    throw new Error('Registration failed');
   }
 
   const data: AuthResponse = await response.json();

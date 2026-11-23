@@ -40,6 +40,11 @@ vi.mock('@mui/x-scheduler/use-event-calendar-api-ref', () => ({
   useEventCalendarApiRef: () => ({ current: { setVisibleDate } }),
 }));
 
+vi.mock('../../../components/calendar/EventParticipantsDialog', () => ({
+  default: ({ open }: { open: boolean }) =>
+    open ? <div>Friends in Events</div> : null,
+}));
+
 const existingEvent: CalendarEvent = {
   id: 1,
   title: 'Palaveri',
@@ -77,11 +82,11 @@ describe('Calendar', () => {
   });
 
   it('näyttää virheilmoituksen, jos tapahtumien haku epäonnistuu', async () => {
-    vi.mocked(getEvents).mockRejectedValue(new Error('Palvelin vastasi virheellä: 500'));
+    vi.mocked(getEvents).mockRejectedValue(new Error('Server responded with error: 500'));
     render(<Calendar />);
 
     expect(
-      await screen.findByText('Error loading events: Palvelin vastasi virheellä: 500')
+      await screen.findByText('Error loading events: Server responded with error: 500')
     ).toBeInTheDocument();
   });
 
@@ -109,6 +114,24 @@ describe('Calendar', () => {
       endTime: '2026-11-03T10:00:00',
     });
     expect(screen.getByText('Uusi')).toBeInTheDocument();
+  });
+
+  it('avautuu osallistujaikkunaan tuplaklikkauksella luodun tapahtuman jälkeen', async () => {
+    await renderCalendar([]);
+    const saved = { ...existingEvent, id: 2, title: 'Double-click event' };
+    vi.mocked(createEvent).mockResolvedValue(saved);
+
+    await triggerEventsChange([
+      {
+        id: 'temp-id',
+        title: 'Double-click event',
+        description: '',
+        start: '2026-11-03T09:00',
+        end: '2026-11-03T10:00',
+      },
+    ]);
+
+    expect(screen.getAllByText('Friends in Events').length).toBeGreaterThan(0);
   });
 
   it('poistaa tapahtuman backendistä', async () => {

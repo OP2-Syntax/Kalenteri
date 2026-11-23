@@ -22,7 +22,7 @@ function authHeaders(): HeadersInit {
 // yhteinen virheenkäsittely
 function checkOk(response: Response, errorMessage: string) {
   if (response.status === 409) {
-    throw new Error('Kaveri tai pyyntö on jo olemassa');
+    throw new Error('Friend or request already exists');
   }
   if (!response.ok) {
     throw new Error(errorMessage + ' (' + response.status + ')');
@@ -35,28 +35,28 @@ export async function searchUsers(query: string): Promise<Friend[]> {
     `${BACKEND_URL}/api/users/search?q=${encodeURIComponent(query)}`,
     { headers: authHeaders() }
   );
-  checkOk(response, 'Haku epäonnistui');
+  checkOk(response, 'Search failed');
   return response.json();
 }
 
 // kaverilista (vain hyväksytyt)
 export async function getFriends(): Promise<Friend[]> {
   const response = await fetch(`${BACKEND_URL}/api/friends`, { headers: authHeaders() });
-  checkOk(response, 'Kaverilistan haku epäonnistui');
+  checkOk(response, 'Friend list loading failed');
   return response.json();
 }
 
 // minulle saapuneet pyynnöt
 export async function getIncomingRequests(): Promise<FriendRequest[]> {
   const response = await fetch(`${BACKEND_URL}/api/friends/requests/incoming`, { headers: authHeaders() });
-  checkOk(response, 'Saapuneiden pyyntöjen haku epäonnistui');
+  checkOk(response, 'Incoming requests loading failed');
   return response.json();
 }
 
 // minun lähettämäni pyynnöt
 export async function getOutgoingRequests(): Promise<FriendRequest[]> {
   const response = await fetch(`${BACKEND_URL}/api/friends/requests/outgoing`, { headers: authHeaders() });
-  checkOk(response, 'Lähetettyjen pyyntöjen haku epäonnistui');
+  checkOk(response, 'Sent requests loading failed');
   return response.json();
 }
 
@@ -66,7 +66,7 @@ export async function sendRequest(userId: number): Promise<FriendRequest> {
     method: 'POST',
     headers: authHeaders(),
   });
-  checkOk(response, 'Pyynnön lähetys epäonnistui');
+  checkOk(response, 'Friend request could not be sent');
   return response.json();
 }
 
@@ -76,7 +76,7 @@ export async function acceptRequest(requestId: number): Promise<Friend> {
     method: 'POST',
     headers: authHeaders(),
   });
-  checkOk(response, 'Pyynnön hyväksyminen epäonnistui');
+  checkOk(response, 'Friend request could not be accepted');
   return response.json();
 }
 
@@ -86,7 +86,7 @@ export async function deleteRequest(requestId: number): Promise<void> {
     method: 'DELETE',
     headers: authHeaders(),
   });
-  checkOk(response, 'Pyynnön poisto epäonnistui');
+  checkOk(response, 'Friend request could not be deleted');
 }
 
 // kaverin poisto kaverilistalta (poistaa kaveruuden molemmilta osapuolilta)
@@ -95,5 +95,5 @@ export async function removeFriend(friendId: number): Promise<void> {
     method: 'DELETE',
     headers: authHeaders(),
   });
-  checkOk(response, 'Kaverin poisto epäonnistui');
+  checkOk(response, 'Friend could not be removed');
 }

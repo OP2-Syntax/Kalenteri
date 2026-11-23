@@ -23,9 +23,9 @@ describe('LoginForm', () => {
     const user = userEvent.setup();
     render(<LoginForm onLoggedIn={onLoggedIn} />);
 
-    await user.type(screen.getByLabelText(/Käyttäjätunnus/), 'testi');
-    await user.type(screen.getByLabelText(/Salasana/), 'salasana');
-    await user.click(screen.getByRole('button', { name: 'Kirjaudu' }));
+    await user.type(screen.getByLabelText(/User name/), 'testi');
+    await user.type(screen.getByLabelText(/Password/), 'salasana');
+    await user.click(screen.getByRole('button', { name: 'Log in' }));
 
     expect(login).toHaveBeenCalledWith('testi', 'salasana');
     expect(onLoggedIn).toHaveBeenCalled();
@@ -38,11 +38,11 @@ describe('LoginForm', () => {
     const user = userEvent.setup();
     render(<LoginForm onLoggedIn={onLoggedIn} />);
 
-    await user.type(screen.getByLabelText(/Käyttäjätunnus/), 'testi');
-    await user.type(screen.getByLabelText(/Salasana/), 'vaara');
-    await user.click(screen.getByRole('button', { name: 'Kirjaudu' }));
+    await user.type(screen.getByLabelText(/User name/), 'testi');
+    await user.type(screen.getByLabelText(/Password/), 'vaara');
+    await user.click(screen.getByRole('button', { name: 'Log in' }));
 
-    expect(await screen.findByText('Väärä käyttäjätunnus tai salasana')).toBeInTheDocument();
+    expect(await screen.findByText('Wrong user name or password')).toBeInTheDocument();
     expect(onLoggedIn).not.toHaveBeenCalled();
     expect(localStorage.getItem('token')).toBeNull();
   });
@@ -51,9 +51,9 @@ describe('LoginForm', () => {
     const user = userEvent.setup();
     render(<LoginForm onLoggedIn={vi.fn()} />);
 
-    expect(screen.queryByLabelText(/Sähköposti/)).not.toBeInTheDocument();
-    await user.click(screen.getByRole('tab', { name: 'Rekisteröidy' }));
-    expect(screen.getByLabelText(/Sähköposti/)).toBeInTheDocument();
+    expect(screen.queryByLabelText(/E-mail/)).not.toBeInTheDocument();
+    await user.click(screen.getByRole('tab', { name: 'Register' }));
+    expect(screen.getByLabelText(/E-mail/)).toBeInTheDocument();
   });
 
   it('rekisteröi uuden käyttäjän', async () => {
@@ -62,11 +62,11 @@ describe('LoginForm', () => {
     const user = userEvent.setup();
     render(<LoginForm onLoggedIn={onLoggedIn} />);
 
-    await user.click(screen.getByRole('tab', { name: 'Rekisteröidy' }));
-    await user.type(screen.getByLabelText(/Käyttäjätunnus/), 'uusi');
-    await user.type(screen.getByLabelText(/Sähköposti/), 'uusi@example.com');
-    await user.type(screen.getByLabelText(/Salasana/), 'salasana');
-    await user.click(screen.getByRole('button', { name: 'Rekisteröidy' }));
+    await user.click(screen.getByRole('tab', { name: 'Register' }));
+    await user.type(screen.getByLabelText(/User name/), 'uusi');
+    await user.type(screen.getByLabelText(/E-mail/), 'uusi@example.com');
+    await user.type(screen.getByLabelText(/Password/), 'salasana');
+    await user.click(screen.getByRole('button', { name: 'Register' }));
 
     expect(register).toHaveBeenCalledWith('uusi', 'uusi@example.com', 'salasana');
     expect(onLoggedIn).toHaveBeenCalled();
@@ -78,12 +78,12 @@ describe('LoginForm', () => {
     const user = userEvent.setup();
     render(<LoginForm onLoggedIn={vi.fn()} />);
 
-    await user.click(screen.getByRole('tab', { name: 'Rekisteröidy' }));
-    await user.type(screen.getByLabelText(/Käyttäjätunnus/), 'uusi');
-    await user.type(screen.getByLabelText(/Sähköposti/), 'uusi@example.com');
-    await user.type(screen.getByLabelText(/Salasana/), 'salasana');
-    await user.click(screen.getByRole('button', { name: 'Rekisteröidy' }));
+    await user.click(screen.getByRole('tab', { name: 'Register' }));
+    await user.type(screen.getByLabelText(/User name/), 'uusi');
+    await user.type(screen.getByLabelText(/E-mail/), 'uusi@example.com');
+    await user.type(screen.getByLabelText(/Password/), 'salasana');
+    await user.click(screen.getByRole('button', { name: 'Register' }));
 
-    expect(await screen.findByText('Rekisteröinti epäonnistui')).toBeInTheDocument();
+    expect(await screen.findByText('Registering failed')).toBeInTheDocument();
   });
 });
