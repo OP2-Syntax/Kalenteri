@@ -6,7 +6,9 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -47,4 +49,14 @@ public class Event {
         inverseJoinColumns = @JoinColumn(name = "user_id")
     )
     private Set<User> participants = new HashSet<>();
+
+    // true, kun omistaja on vahvistanut ajan
+    private boolean votingClosed = false;
+
+    // äänestettävät ajankohdat
+    @JsonIgnore
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<TimeOption> timeOptions = new ArrayList<>();
 }

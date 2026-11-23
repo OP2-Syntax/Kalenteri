@@ -12,4 +12,5 @@ public record EventResponse(
         String ownerUsername,
         boolean mine,
         List<UserDto> participants,
-        String color) {}
+        String color,
+        String votingStatus) {}

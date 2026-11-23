@@ -50,7 +50,8 @@ public class EventController {
                 event.getOwner().getUsername(),
                 event.getOwner().getId().equals(currentUser.getId()),
                 participants,
-                event.getColor());
+                event.getColor(),
+                VotingController.statusOf(event));
     }
 
     private Set<User> resolveParticipants(User owner, List<Long> participantIds) {
