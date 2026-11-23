@@ -83,7 +83,7 @@ function AddEventForm({ onCreated, onCancel }: AddEventFormProps) {
                 } catch (votingError) {
                     // tapahtuma luotiin, mutta äänestys ei: kerrotaan käyttäjälle
                     onCreated(newEvent);
-                    console.error("Äänestyksen luominen epäonnistui: ", votingError);
+                    console.error("Create voting failed: ", votingError);
                     return;
                 }
             }
@@ -99,8 +99,8 @@ function AddEventForm({ onCreated, onCancel }: AddEventFormProps) {
             setVoteMode(false);
             setOptions([emptyOption(), emptyOption()]);
         } catch (error) {
-            console.error("Tapahtuman lisääminen epöonnistui: ", error);
-            setErrorMessage(error instanceof Error ? error.message : 'Tapahtuman lisääminen epäonnistui');
+            console.error("Add event failed: ", error);
+            setErrorMessage(error instanceof Error ? error.message : 'Adding event failed');
         }
     };
 
