@@ -32,7 +32,7 @@ public class EventController {
     // hakee kirjautuneen käyttäjän Authentication-objektista
     private User getCurrentUser(Authentication authentication) {
         return userRepository.findByUsername(authentication.getName())
-                .orElseThrow(() -> new RuntimeException("Käyttäjää ei löytynyt"));
+                .orElseThrow(() -> new RuntimeException("User not found"));
     }
 
     private EventResponse toResponse(Event event, User currentUser) {
