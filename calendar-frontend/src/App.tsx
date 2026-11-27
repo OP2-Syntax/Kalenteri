@@ -3,6 +3,7 @@ import { useState, type MouseEvent } from 'react';
 import Calendar from './components/calendar/Calendar';
 import LoginForm from './components/auth/LoginForm';
 import FriendsPanel from './components/friends/FriendsPanel';
+import Notifications from './components/Notifications';
 import { getToken, getUsername, logout } from './authApi';
 import {
   ThemeProvider,
@@ -87,6 +88,7 @@ function App() {
           padding: 1.5,
         }}
       >
+        <Notifications onOpenFriends={handleFriends} />
         <IconButton
           onClick={handleMenuOpen}
           size="large"
