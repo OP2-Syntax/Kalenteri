@@ -24,13 +24,14 @@ describe('votingApi', () => {
   it('setVoting lähettää PUT-pyynnön vaihtoehdoilla', async () => {
     const fetchMock = mockFetch(true, { status: 'OPEN', options: [] });
 
-    await setVoting(5, [{ startTime: '2030-02-01T18:00', endTime: '2030-02-01T20:00' }]);
+    await setVoting(5, [{ startTime: '2030-02-01T18:00', endTime: '2030-02-01T20:00' }], 36);
 
     const [url, options] = fetchMock.mock.calls[0];
     expect(url).toMatch(/\/api\/events\/5\/voting$/);
     expect(options.method).toBe('PUT');
     expect(JSON.parse(options.body)).toEqual({
       options: [{ startTime: '2030-02-01T18:00', endTime: '2030-02-01T20:00' }],
+      durationHours: 36,
     });
   });
 

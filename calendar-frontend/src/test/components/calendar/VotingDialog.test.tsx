@@ -26,6 +26,7 @@ const openVoting: Voting = {
   canVote: true,
   myVoteOptionId: null,
   winnerOptionId: null,
+  deadline: '2030-02-02T18:00:00',
   options: [
     { id: 11, startTime: '2030-02-01T18:00:00', endTime: '2030-02-01T20:00:00', votes: 1, voters: [{ id: 7, username: 'kaveri' }] },
     { id: 12, startTime: '2030-02-02T18:00:00', endTime: '2030-02-02T20:00:00', votes: 0, voters: [] },
@@ -44,6 +45,7 @@ describe('VotingDialog', () => {
     render(<VotingDialog open onClose={vi.fn()} events={[event]} onEventChanged={vi.fn()} />);
 
     expect(await screen.findByText('Elokuvat')).toBeInTheDocument();
+    expect(await screen.findByText('Voting ends: 2030-02-02 18:00')).toBeInTheDocument();
     expect(await screen.findByText(/1 vote: kaveri/)).toBeInTheDocument();
     expect(screen.getByText(/0 votes/)).toBeInTheDocument();
   });
@@ -66,9 +68,11 @@ describe('VotingDialog', () => {
 
   it('estää äänestämisen, kun äänestys ei ole auki', async () => {
     vi.mocked(getVoting).mockResolvedValue({ ...openVoting, status: 'CLOSED', canVote: false });
-    render(<VotingDialog open onClose={vi.fn()} events={[event]} onEventChanged={vi.fn()} />);
+    const onEventChanged = vi.fn();
+    render(<VotingDialog open onClose={vi.fn()} events={[event]} onEventChanged={onEventChanged} />);
 
     expect(await screen.findByRole('button', { name: /Vote 2030-02-01 18:00/ })).toBeDisabled();
+    await waitFor(() => expect(onEventChanged).toHaveBeenCalledWith({ ...event, votingStatus: 'CLOSED' }));
   });
 
   it('omistaja vahvistaa ajan ja tapahtuma päivittyy', async () => {

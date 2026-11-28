@@ -15,21 +15,22 @@ import hh.syntax.calendar.model.User;
 import hh.syntax.calendar.repository.EventRepository;
 import hh.syntax.calendar.repository.TimeVoteRepository;
 import hh.syntax.calendar.repository.UserRepository;
+import hh.syntax.calendar.service.VotingExpiryService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
-// Tapahtuman ajankohdasta äänestäminen: omistaja asettaa vaihtoehdot,
-// omistaja ja kutsutut osallistujat äänestävät, omistaja vahvistaa ajan (eniten ääniä saanut voittaa).
+// Omistaja asettaa vaihtoehdot; omistaja ja kutsutut osallistujat äänestävät.
+// Eniten ääniä saanut vaihtoehto valitaan suljettaessa, myös määräajan umpeutuessa.
 @RestController
 @RequestMapping("/api/events/{eventId}/voting")
 public class VotingController {
@@ -39,13 +40,16 @@ public class VotingController {
     private final EventRepository eventRepository;
     private final UserRepository userRepository;
     private final TimeVoteRepository voteRepository;
+    private final VotingExpiryService votingExpiryService;
 
     public VotingController(EventRepository eventRepository,
                             UserRepository userRepository,
-                            TimeVoteRepository voteRepository) {
+                            TimeVoteRepository voteRepository,
+                            VotingExpiryService votingExpiryService) {
         this.eventRepository = eventRepository;
         this.userRepository = userRepository;
         this.voteRepository = voteRepository;
+        this.votingExpiryService = votingExpiryService;
     }
 
     private User getCurrentUser(Authentication authentication) {
@@ -59,7 +63,9 @@ public class VotingController {
 
     // äänestää saa tapahtuman omistaja ja kutsutut osallistujat
     private static boolean isMember(Event event, User user) {
-        return isOwner(event, user) || event.getParticipants().contains(user);
+        return isOwner(event, user)
+                || event.getParticipants().contains(user)
+                || event.getGroups().stream().anyMatch(group -> group.getMembers().contains(user));
     }
 
     // NONE / OPEN / CLOSED
@@ -109,7 +115,7 @@ public class VotingController {
 
         // vahvistuksen jälkeen voittaja on se vaihtoehto, jonka aika on tapahtuman aika
         Long winner = null;
-        if ("CLOSED".equals(status)) {
+        if ("CLOSED".equals(status) && !votes.isEmpty()) {
             winner = sorted.stream()
                     .filter(option -> option.getStartTime().equals(event.getStartTime())
                             && option.getEndTime().equals(event.getEndTime()))
@@ -119,11 +125,14 @@ public class VotingController {
         }
 
         return new VotingResponse(status, "OPEN".equals(status),
-                myVote, winner, options);
+                myVote, winner, event.getVotingDeadline(), options);
     }
 
     private EventResponse toEventResponse(Event event, User currentUser) {
-        List<UserDto> participants = event.getParticipants().stream()
+        Set<User> eventParticipants = new HashSet<>(event.getParticipants());
+        event.getGroups().forEach(group -> eventParticipants.addAll(group.getMembers()));
+        eventParticipants.remove(event.getOwner());
+        List<UserDto> participants = eventParticipants.stream()
                 .map(user -> new UserDto(user.getId(), user.getUsername()))
                 .sorted(Comparator.comparing(UserDto::username, String.CASE_INSENSITIVE_ORDER))
                 .toList();
@@ -135,13 +144,14 @@ public class VotingController {
 
     // GET /api/events/5/voting — äänestyksen tila, tulokset ja oma ääni
     @GetMapping
-    @Transactional(readOnly = true)
+    @Transactional
     public ResponseEntity<Object> getVoting(@PathVariable Long eventId, Authentication authentication) {
         User currentUser = getCurrentUser(authentication);
         Event event = eventRepository.findById(eventId).orElse(null);
         if (event == null || !isMember(event, currentUser)) {
             return ResponseEntity.notFound().build();
         }
+        votingExpiryService.closeIfExpired(event, LocalDateTime.now());
         return ResponseEntity.ok(toVotingResponse(event, currentUser));
     }
 
@@ -156,8 +166,16 @@ public class VotingController {
         if (event == null || !isOwner(event, currentUser)) {
             return ResponseEntity.notFound().build();
         }
+        boolean expired = votingExpiryService.closeIfExpired(event, LocalDateTime.now());
+        if (expired) {
+            return error(HttpStatus.CONFLICT, "Voting has ended");
+        }
         if (event.isVotingClosed()) {
             return error(HttpStatus.CONFLICT, "The time has already been confirmed");
+        }
+        int durationHours = request.durationHours() == null ? 24 : request.durationHours();
+        if (durationHours < 1 || durationHours > 8760) {
+            return error(HttpStatus.BAD_REQUEST, "Voting duration must be between 1 hour and 1 year");
         }
         List<TimeOptionRequest> requested = request.options();
         if (requested == null || requested.size() < 2 || requested.size() > MAX_OPTIONS) {
@@ -190,6 +208,7 @@ public class VotingController {
                 .orElseThrow();
         event.setStartTime(earliest.startTime());
         event.setEndTime(earliest.endTime());
+        event.setVotingDeadline(LocalDateTime.now().plusHours(durationHours));
 
         eventRepository.saveAndFlush(event);
         return ResponseEntity.ok(toVotingResponse(event, currentUser));
@@ -205,6 +224,9 @@ public class VotingController {
         Event event = eventRepository.findById(eventId).orElse(null);
         if (event == null || !isMember(event, currentUser)) {
             return ResponseEntity.notFound().build();
+        }
+        if (votingExpiryService.closeIfExpired(event, LocalDateTime.now())) {
+            return error(HttpStatus.CONFLICT, "Voting has ended");
         }
         String status = statusOf(event);
         if ("NONE".equals(status)) {
@@ -234,7 +256,7 @@ public class VotingController {
         return ResponseEntity.ok(toVotingResponse(event, currentUser));
     }
 
-    // POST /api/events/5/voting/confirm — omistaja vahvistaa ajan (eniten ääniä saanut vaihtoehto) ja sulkee äänestyksen
+    // POST /api/events/5/voting/confirm — omistaja vahvistaa ajan ja sulkee äänestyksen
     @PostMapping("/confirm")
     @Transactional
     public ResponseEntity<Object> confirm(@PathVariable Long eventId, Authentication authentication) {
@@ -243,6 +265,9 @@ public class VotingController {
         if (event == null || !isOwner(event, currentUser)) {
             return ResponseEntity.notFound().build();
         }
+        if (votingExpiryService.closeIfExpired(event, LocalDateTime.now())) {
+            return error(HttpStatus.CONFLICT, "Voting has ended");
+        }
         if ("NONE".equals(statusOf(event))) {
             return error(HttpStatus.CONFLICT, "This event has no voting");
         }
@@ -250,19 +275,7 @@ public class VotingController {
             return error(HttpStatus.CONFLICT, "The time has already been confirmed");
         }
 
-        List<TimeOption> options = event.getTimeOptions().stream()
-                .sorted(Comparator.comparing(TimeOption::getId))
-                .toList();
-        Map<Long, Long> counts = voteRepository.findByEventId(event.getId()).stream()
-                .filter(vote -> isMember(event, vote.getUser()))
-                .collect(Collectors.groupingBy(vote -> vote.getOption().getId(), Collectors.counting()));
-
-        // eniten ääniä saanut voittaa, tasatilanteessa aikaisempi vaihtoehto
-        TimeOption winner = options.stream()
-                .filter(option -> counts.getOrDefault(option.getId(), 0L) > 0)
-                .max(Comparator.comparing((TimeOption option) -> counts.get(option.getId()))
-                        .thenComparing(TimeOption::getStartTime, Comparator.reverseOrder()))
-                .orElse(null);
+        TimeOption winner = votingExpiryService.chooseWinner(event);
         if (winner == null) {
             return error(HttpStatus.CONFLICT, "No votes, the time cannot be confirmed");
         }

@@ -8,6 +8,7 @@ interface CreateEventData {
   endTime: string;
   color?: string;
   participantIds?: number[];
+  groupIds?: number[];
 }
 
 export type { CalendarEvent } from './eventMapper';

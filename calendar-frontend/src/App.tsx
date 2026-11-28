@@ -4,6 +4,7 @@ import Calendar from './components/calendar/Calendar';
 import LoginForm from './components/auth/LoginForm';
 import FriendsPanel from './components/friends/FriendsPanel';
 import Notifications from './components/Notifications';
+import GroupsPanel from './components/groups/GroupsPanel';
 import { getToken, getUsername, logout } from './authApi';
 import {
   ThemeProvider,
@@ -28,6 +29,7 @@ function App() {
   );
   const [darkMode, setDarkMode] = useState(false);
   const [showFriends, setShowFriends] = useState(false);
+  const [showGroups, setShowGroups] = useState(false);
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const menuOpen = Boolean(anchorEl);
@@ -63,6 +65,11 @@ function App() {
     handleMenuClose();
   }
 
+  const handleGroups = () => {
+    setShowGroups(true);
+    handleMenuClose();
+  }
+
   const avatarLetter = displayName.trim().charAt(0).toUpperCase() || 'U';
 
   const theme = createTheme({
@@ -79,90 +86,71 @@ function App() {
     <ThemeProvider theme={theme}>
       <CssBaseline />
 
-      {/* Profile avatar and account menu */}
-      <Box
-        sx={{
-          display: 'flex',
-          justifyContent: 'flex-end',
-          alignItems: 'center',
-          padding: 1.5,
+      <Calendar
+        headerActions={
+          <>
+            <Notifications onOpenFriends={handleFriends} onOpenGroups={handleGroups} />
+            <IconButton
+              onClick={handleMenuOpen}
+              size="large"
+              aria-label="Open account menu"
+              aria-haspopup="true"
+              aria-expanded={menuOpen ? 'true' : undefined}
+            >
+              <Avatar
+                sx={{
+                  width: 42,
+                  height: 42,
+                  bgcolor: 'primary.main',
+                  color: 'primary.contrastText',
+                  fontWeight: 600,
+                }}
+              >
+                {avatarLetter}
+              </Avatar>
+            </IconButton>
+          </>
+        }
+      />
+      <Menu
+        anchorEl={anchorEl}
+        open={menuOpen}
+        onClose={handleMenuClose}
+        anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: 'right',
+        }}
+        transformOrigin={{
+          vertical: 'top',
+          horizontal: 'right',
+        }}
+        slotProps={{
+          paper: {
+            sx: {
+              minWidth: 210,
+              mt: 1,
+              borderRadius: 2,
+              boxShadow: 4,
+            },
+          },
         }}
       >
-        <Notifications onOpenFriends={handleFriends} />
-        <IconButton
-          onClick={handleMenuOpen}
-          size="large"
-          aria-label="Open account menu"
-          aria-haspopup="true"
-          aria-expanded={menuOpen ? 'true' : undefined}
-        >
-          <Avatar
-            sx={{
-              width: 42,
-              height: 42,
-              bgcolor: 'primary.main',
-              color: 'primary.contrastText',
-              fontWeight: 600,
-            }}
-          >
-            {avatarLetter}
-          </Avatar>
-        </IconButton>
-
-        <Menu
-          anchorEl={anchorEl}
-          open={menuOpen}
-          onClose={handleMenuClose}
-          anchorOrigin={{
-            vertical: 'bottom',
-            horizontal: 'right',
-          }}
-          transformOrigin={{
-            vertical: 'top',
-            horizontal: 'right',
-          }}
-          slotProps={{
-            paper: {
-              sx: {
-                minWidth: 210,
-                mt: 1,
-                borderRadius: 2,
-                boxShadow: 4,
-              },
-            },
-          }}
-        >
-          <Box sx={{ px: 2, py: 1.5 }}>
-            <Typography
-              variant="subtitle1"
-              sx={{ fontWeight: 600 }}
-            >
-              {displayName}
-            </Typography>
-
-          </Box>
-
-          <Divider />
-
-          <MenuItem onClick={handleFriends}>
-            Friends
-          </MenuItem>
-
-          <MenuItem onClick={handleDarkMode}>
-            {darkMode ? 'Light Mode' : 'Dark Mode'}
-          </MenuItem>
-
-          <Divider />
-
-          <MenuItem
-            onClick={handleLogout}
-            sx={{ color: 'error.main' }}
-          >
-            Log Out
-          </MenuItem>
-        </Menu>
-      </Box>
-      <Calendar />
+        <Box sx={{ px: 2, py: 1.5 }}>
+          <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+            {displayName}
+          </Typography>
+        </Box>
+        <Divider />
+        <MenuItem onClick={handleFriends}>Friends</MenuItem>
+        <MenuItem onClick={handleGroups}>Groups</MenuItem>
+        <MenuItem onClick={handleDarkMode}>
+          {darkMode ? 'Light Mode' : 'Dark Mode'}
+        </MenuItem>
+        <Divider />
+        <MenuItem onClick={handleLogout} sx={{ color: 'error.main' }}>
+          Log Out
+        </MenuItem>
+      </Menu>
       <Dialog
         open={showFriends}
         onClose={() => setShowFriends(false)}
@@ -170,6 +158,15 @@ function App() {
         <DialogTitle>Friends</DialogTitle>
         <DialogContent>
           <FriendsPanel />
+        </DialogContent>
+      </Dialog>
+      <Dialog
+        open={showGroups}
+        onClose={() => setShowGroups(false)}
+      >
+        <DialogTitle>Groups</DialogTitle>
+        <DialogContent>
+          <GroupsPanel />
         </DialogContent>
       </Dialog>
     </ThemeProvider>

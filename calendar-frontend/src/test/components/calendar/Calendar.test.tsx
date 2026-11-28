@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import Calendar from '../../../components/calendar/Calendar';
 import { createEvent, deleteEvent, getEvents, updateEvent, type CalendarEvent } from '../../../components/calendar/calendarApi';
+import type { SchedulerEventEditingStartEventDetails, SchedulerRenderableEventOccurrence } from '@mui/x-scheduler/models';
 
 vi.mock('../../../components/calendar/calendarApi', () => ({
   getEvents: vi.fn(),
@@ -16,6 +17,10 @@ vi.mock('../../../components/calendar/calendarApi', () => ({
 interface MockCalendarProps {
   events: CalendarEvent[];
   onEventsChange: (events: CalendarEvent[]) => Promise<void>;
+  onEventEditingStart: (
+    occurrence: SchedulerRenderableEventOccurrence,
+    details: SchedulerEventEditingStartEventDetails,
+  ) => void;
   view: string;
   onViewChange: (view: string) => void;
 }
@@ -177,6 +182,42 @@ describe('Calendar', () => {
     await user.click(screen.getByRole('button', { name: 'Add Event' }));
 
     expect(screen.getByText('Add New Event to Calendar')).toBeInTheDocument();
+  });
+
+  it('double-click event creation opens the full form with the selected date', async () => {
+    await renderCalendar([]);
+    const cancel = vi.fn();
+    const occurrence = {
+      displayTimezone: {
+        start: { timestamp: new Date(2026, 10, 2).getTime() },
+      },
+    } as SchedulerRenderableEventOccurrence;
+    const details = {
+      reason: 'creation',
+      event: new Event('creation'),
+      cancel,
+      allowPropagation: vi.fn(),
+      isCanceled: false,
+      isPropagationAllowed: false,
+      trigger: undefined,
+      anchor: undefined,
+      occurrence,
+    } as SchedulerEventEditingStartEventDetails;
+
+    act(() => calendarProps.current!.onEventEditingStart(occurrence, details));
+
+    expect(cancel).toHaveBeenCalledOnce();
+    expect(screen.getByText('Add New Event to Calendar')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Invite friends (optional)')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Invite a group (optional)')).toBeInTheDocument();
+    expect(screen.getByRole('switch', { name: /vote on the time/i })).toBeInTheDocument();
+    const dialog = screen.getByRole('dialog');
+    const dates = dialog.querySelectorAll<HTMLInputElement>('input[type="date"]');
+    const times = dialog.querySelectorAll<HTMLInputElement>('input[type="time"]');
+    expect(dates[0].value).toBe('2026-11-02');
+    expect(times[0].value).toBe('09:00');
+    expect(dates[1].value).toBe('2026-11-02');
+    expect(times[1].value).toBe('10:00');
   });
 
   it('kuukausivalitsimella siirrytään valittuun kuukauteen', async () => {

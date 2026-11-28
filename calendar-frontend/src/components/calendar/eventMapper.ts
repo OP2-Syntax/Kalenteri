@@ -34,6 +34,7 @@ export function toCalendarEvent(event: BackendEvent): CalendarEvent {
     description: event.description,
     start: event.startTime,
     end: event.endTime,
+    ...(event.mine === false ? { readOnly: true } : {}),
     ...(event.color ? { color: event.color as CalendarEvent['color'] } : {}),
     ...(event.ownerUsername !== undefined ? { ownerUsername: event.ownerUsername } : {}),
     ...(event.mine !== undefined ? { mine: event.mine } : {}),

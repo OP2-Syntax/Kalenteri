@@ -34,7 +34,15 @@ function formatTime(value: string): string {
 }
 
 // Yhden tapahtuman äänestys: vaihtoehdot, äänet, äänestysnapit ja omistajan "Valitse aika"
-function EventVotingCard({ event, onEventChanged }: { event: CalendarEvent; onEventChanged: (event: CalendarEvent) => void }) {
+function EventVotingCard({
+  event,
+  onEventChanged,
+  pollingEnabled,
+}: {
+  event: CalendarEvent;
+  onEventChanged: (event: CalendarEvent) => void;
+  pollingEnabled: boolean;
+}) {
   const eventId = Number(event.id);
   const [voting, setVotingState] = useState<Voting | null>(null);
   const [message, setMessage] = useState<string | null>(null);
@@ -42,15 +50,26 @@ function EventVotingCard({ event, onEventChanged }: { event: CalendarEvent; onEv
 
   const showError = (error: unknown) => setMessage(error instanceof Error ? error.message : 'Unknown error');
 
-  const load = useCallback(() => {
-    getVoting(eventId)
-      .then(setVotingState)
-      .catch(showError);
-  }, [eventId]);
+  const load = useCallback(async () => {
+    try {
+      const currentVoting = await getVoting(eventId);
+      setVotingState(currentVoting);
+      if (currentVoting.status === 'CLOSED' && event.votingStatus !== 'CLOSED') {
+        onEventChanged({ ...event, votingStatus: 'CLOSED' });
+      }
+    } catch (error) {
+      showError(error);
+    }
+  }, [event, eventId, onEventChanged]);
 
   useEffect(() => {
-    load();
-  }, [load]);
+    if (!pollingEnabled) {
+      return;
+    }
+    void load();
+    const intervalId = window.setInterval(() => void load(), 30_000);
+    return () => window.clearInterval(intervalId);
+  }, [load, pollingEnabled]);
 
   const handleVote = async (optionId: number) => {
     setMessage(null);
@@ -59,7 +78,7 @@ function EventVotingCard({ event, onEventChanged }: { event: CalendarEvent; onEv
       setVotingState(await vote(eventId, optionId));
     } catch (error) {
       showError(error);
-      load(); // tila on voinut muuttua (esim. äänestys ehti sulkeutua)
+      void load(); // tila on voinut muuttua (esim. äänestys ehti sulkeutua)
     } finally {
       setBusy(false);
     }
@@ -88,6 +107,11 @@ function EventVotingCard({ event, onEventChanged }: { event: CalendarEvent; onEv
         <Typography variant="subtitle1">{event.title}</Typography>
         {voting && <Chip size="small" label={STATUS_LABELS[voting.status] ?? voting.status} />}
       </Box>
+      {voting?.status === 'OPEN' && voting.deadline && (
+        <Typography variant="body2" color="text.secondary">
+          Voting ends: {formatTime(voting.deadline)}
+        </Typography>
+      )}
       {message && <Alert severity="error" sx={{ my: 1 }}>{message}</Alert>}
 
       {voting?.options.map((option) => {
@@ -131,7 +155,12 @@ function VotingDialog({ open, onClose, events, onEventChanged }: VotingDialogPro
         )}
         <List>
           {events.map((event) => (
-            <EventVotingCard key={event.id} event={event} onEventChanged={onEventChanged} />
+            <EventVotingCard
+              key={event.id}
+              event={event}
+              onEventChanged={onEventChanged}
+              pollingEnabled={open}
+            />
           ))}
         </List>
       </DialogContent>

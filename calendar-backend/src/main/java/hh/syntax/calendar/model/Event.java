@@ -50,8 +50,21 @@ public class Event {
     )
     private Set<User> participants = new HashSet<>();
 
-    // true, kun omistaja on vahvistanut ajan
+    @JsonIgnore
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    @ManyToMany
+    @JoinTable(
+        name = "event_groups",
+        joinColumns = @JoinColumn(name = "event_id"),
+        inverseJoinColumns = @JoinColumn(name = "group_id")
+    )
+    private Set<CalendarGroup> groups = new HashSet<>();
+
+    // true, kun omistaja on vahvistanut ajan tai äänestyksen määräaika on päättynyt
     private boolean votingClosed = false;
+
+    private LocalDateTime votingDeadline;
 
     // äänestettävät ajankohdat
     @JsonIgnore

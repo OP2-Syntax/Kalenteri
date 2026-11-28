@@ -16,6 +16,7 @@ export interface Voting {
   canVote: boolean;
   myVoteOptionId: number | null;
   winnerOptionId: number | null;
+  deadline: string | null;
   options: TimeOption[];
 }
 
@@ -56,11 +57,11 @@ export async function getVoting(eventId: number): Promise<Voting> {
 }
 
 // omistaja asettaa äänestettävät vaihtoehdot
-export async function setVoting(eventId: number, options: OptionInput[]): Promise<Voting> {
+export async function setVoting(eventId: number, options: OptionInput[], durationHours = 24): Promise<Voting> {
   const response = await fetch(`${BACKEND_URL}/api/events/${eventId}/voting`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json', ...authHeaders() },
-    body: JSON.stringify({ options }),
+    body: JSON.stringify({ options, durationHours }),
   });
   await checkOk(response, 'Creating the voting failed');
   return response.json();

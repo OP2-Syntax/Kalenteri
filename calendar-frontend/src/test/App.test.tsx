@@ -1,11 +1,17 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import type { ReactNode } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import App from '../App';
 
 // kalenteri testataan erikseen, tässä riittää tarkistaa että se näytetään
 vi.mock('../components/calendar/Calendar', () => ({
-  default: () => <div>Kalenterinäkymä</div>,
+  default: ({ headerActions }: { headerActions?: ReactNode }) => (
+    <>
+      {headerActions}
+      <div>Kalenterinäkymä</div>
+    </>
+  ),
 }));
 
 describe('App', () => {

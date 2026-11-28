@@ -1,9 +1,9 @@
 import { EventCalendar } from '@mui/x-scheduler/event-calendar';
 //import type { SchedulerEvent } from '@mui/x-scheduler/models';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { getEvents, createEvent, deleteEvent, updateEvent, type CalendarEvent } from './calendarApi';
 import { defaultPreferences, preferencesMenuConfig } from './calendarPreferences';
-import { type ComponentProps, type MouseEvent as ReactMouseEvent } from 'react';
+import { type ComponentProps, type MouseEvent as ReactMouseEvent, type ReactNode } from 'react';
 
 import AddEventForm from './AddEventForm';
 import EventParticipantsDialog from './EventParticipantsDialog';
@@ -41,7 +41,7 @@ function toLocalDateTime(value: Date | string): string {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
 }
 
-function Calendar() {
+function Calendar({ headerActions }: { headerActions?: ReactNode }) {
   const apiRef = useEventCalendarApiRef();
 
   const [events, setEvents] = useState<CalendarEvent[]>([]);
@@ -49,6 +49,11 @@ function Calendar() {
   const [error, setError] = useState<string | null>(null);
 
   const [open, setOpen] = useState(false);
+  const [eventFormKey, setEventFormKey] = useState(0);
+  const [initialEventTimes, setInitialEventTimes] = useState<{
+    startTime?: string;
+    endTime?: string;
+  }>({});
   const [participantsOpen, setParticipantsOpen] = useState(false);
   const [votingOpen, setVotingOpen] = useState(false);
   const [monthPickerOpen, setMonthPickerOpen] = useState(false);
@@ -105,6 +110,30 @@ function Calendar() {
     setOpen(false);
   };
 
+  const openAddEventForm = (startTime?: string, endTime?: string) => {
+    setInitialEventTimes({ startTime, endTime });
+    setEventFormKey((key) => key + 1);
+    setOpen(true);
+  };
+
+  const handleEventEditingStart: NonNullable<
+    ComponentProps<typeof EventCalendar>['onEventEditingStart']
+  > = (occurrence, details) => {
+    if (details.reason !== 'creation') {
+      return;
+    }
+
+    details.cancel();
+    const start = new Date(occurrence.displayTimezone.start.timestamp);
+    start.setHours(9, 0, 0, 0);
+    const end = new Date(start);
+    end.setHours(10, 0, 0, 0);
+    openAddEventForm(
+      toLocalDateTime(start).slice(0, 16),
+      toLocalDateTime(end).slice(0, 16),
+    );
+  };
+
   const handleParticipantsChanged = (changed: CalendarEvent) => {
     setEvents((prev) =>
       prev.map((event) => (event.id === changed.id ? { ...event, participants: changed.participants } : event))
@@ -112,9 +141,9 @@ function Calendar() {
   };
 
   // omistaja vahvisti ajan: päivitetään tapahtuman aika ja äänestyksen tila kalenteriin
-  const handleVotingConfirmed = (changed: CalendarEvent) => {
+  const handleVotingConfirmed = useCallback((changed: CalendarEvent) => {
     setEvents((prev) => prev.map((event) => (event.id === changed.id ? { ...event, ...changed } : event)));
-  };
+  }, []);
 
   const handleEventsChange = async (newEvents: CalendarEvent[]) => {
     // Uusi tapahtuma lisätään
@@ -226,16 +255,31 @@ function Calendar() {
   if (error) return <p>Error loading events: {error}</p>;
 
   return (
-    <Box sx={{ height: 850, width: '100%' }}>
-      <Typography variant="h4" component="h1">
-        Calendar
-      </Typography>
+    <Box sx={{ width: '100%' }}>
+      <Box
+        sx={{
+          position: 'relative',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          minHeight: 56,
+        }}
+      >
+        <Typography variant="h4" component="h1">
+          Calendar
+        </Typography>
+        {headerActions && (
+          <Box sx={{ position: 'absolute', right: 0, display: 'flex', alignItems: 'center', gap: 0.5 }}>
+            {headerActions}
+          </Box>
+        )}
+      </Box>
 
       {/*Avaa addEventFormin*/}
       <Box sx={{ display: 'flex', gap: 1, my: 2 }}>
         <Button
           variant="contained"
-          onClick={() => setOpen(true)}
+          onClick={() => openAddEventForm()}
         >
           Add Event
         </Button>
@@ -263,7 +307,7 @@ function Calendar() {
       <VotingDialog
         open={votingOpen}
         onClose={() => setVotingOpen(false)}
-        events={events.filter((event) => event.votingStatus && event.votingStatus !== 'NONE')}
+        events={events.filter((event) => event.votingStatus === 'OPEN')}
         onEventChanged={handleVotingConfirmed}
       />
 
@@ -285,6 +329,11 @@ function Calendar() {
           apiRef={apiRef}
           events={events}
           onEventsChange={handleEventsChange}
+          sx={{
+            '& .MuiEventCalendar-miniCalendarDayCell': {
+              aspectRatio: '0.88',
+            },
+          }}
           defaultView='month'
           view={view}
           onViewChange={setView}
@@ -292,6 +341,7 @@ function Calendar() {
           defaultPreferences={defaultPreferences}
           preferencesMenuConfig={preferencesMenuConfig}
           eventCreation={{ interaction: "double-click", duration: 60 }}
+          onEventEditingStart={handleEventEditingStart}
         />
       </div>
 
@@ -302,8 +352,11 @@ function Calendar() {
       >
         <DialogTitle>Add New Event to Calendar</DialogTitle>
         <AddEventForm
+          key={eventFormKey}
           onCreated={handleEventCreated}
           onCancel={() => setOpen(false)}
+          initialStartTime={initialEventTimes.startTime}
+          initialEndTime={initialEventTimes.endTime}
         />
       </Dialog>
 

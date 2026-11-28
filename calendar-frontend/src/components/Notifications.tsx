@@ -10,11 +10,14 @@ import {
   Menu,
   MenuItem,
   Typography,
+  Button,
+  Box,
 } from '@mui/material';
 
 import NotificationsNoneIcon from '@mui/icons-material/NotificationsNone';
 import PersonAddAlt1Icon from '@mui/icons-material/PersonAddAlt1';
 import EventAvailableIcon from '@mui/icons-material/EventAvailable';
+import GroupAddIcon from '@mui/icons-material/GroupAdd';
 
 import { getUsername } from '../authApi';
 
@@ -27,17 +30,25 @@ import {
   getEvents,
   type CalendarEvent,
 } from './calendar/calendarApi';
+import {
+  acceptGroupInvitation,
+  declineGroupInvitation,
+  getIncomingGroupInvitations,
+  type GroupInvitation,
+} from './groups/groupsApi';
 
 
 type NotificationItem = {
   id: string;
-  kind: 'friend-request' | 'event-invitation';
+  kind: 'friend-request' | 'event-invitation' | 'group-invitation' | 'voting-ended';
   title: string;
   description: string;
+  invitationId?: number;
 };
 
 type Props = {
   onOpenFriends: () => void;
+  onOpenGroups: () => void;
 };
 
 
@@ -55,7 +66,7 @@ function getReadNotificationIds(): string[] {
 }
 
 
-function Notifications({ onOpenFriends }: Props) {
+function Notifications({ onOpenFriends, onOpenGroups }: Props) {
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
@@ -64,6 +75,9 @@ function Notifications({ onOpenFriends }: Props) {
 
   const [events, setEvents] =
     useState<CalendarEvent[]>([]);
+
+  const [groupInvitations, setGroupInvitations] =
+    useState<GroupInvitation[]>([]);
 
   const [readNotificationIds, setReadNotificationIds] =
     useState<string[]>(getReadNotificationIds);
@@ -74,13 +88,15 @@ function Notifications({ onOpenFriends }: Props) {
   // Fetch friend requests and calendar events
   const refresh = useCallback(async () => {
     try {
-      const [requests, calendarEvents] = await Promise.all([
+      const [requests, calendarEvents, incomingGroupInvitations] = await Promise.all([
         getIncomingRequests(),
         getEvents(),
+        getIncomingGroupInvitations(),
       ]);
 
       setFriendRequests(requests);
       setEvents(calendarEvents);
+      setGroupInvitations(incomingGroupInvitations);
       setLoadError(false);
 
     } catch {
@@ -126,10 +142,27 @@ function Notifications({ onOpenFriends }: Props) {
         description: `You have been invited to "${event.title}"`,
       }));
 
+    const votingItems = events
+      .filter((event) => event.votingStatus === 'CLOSED')
+      .map((event) => ({
+        id: `voting-ended-${event.id}`,
+        kind: 'voting-ended' as const,
+        title: 'Voting ended',
+        description: `The time voting for "${event.title}" has ended`,
+      }));
 
-    return [...friendItems, ...eventItems];
+    const groupItems = groupInvitations.map((invitation) => ({
+      id: `group-${invitation.id}`,
+      kind: 'group-invitation' as const,
+      title: 'Group Invitation',
+      description: `${invitation.sender.username} invited you to "${invitation.group.name}"`,
+      invitationId: invitation.id,
+    }));
 
-  }, [friendRequests, events]);
+
+    return [...friendItems, ...eventItems, ...groupItems, ...votingItems];
+
+  }, [friendRequests, events, groupInvitations]);
 
 
   // Calculate the number of unread notifications
@@ -196,6 +229,19 @@ function Notifications({ onOpenFriends }: Props) {
     if (notification.kind === 'friend-request') {
       onOpenFriends();
     }
+    if (notification.kind === 'group-invitation') {
+      onOpenGroups();
+    }
+  };
+
+  const acceptGroupInvite = async (invitationId: number) => {
+    await acceptGroupInvitation(invitationId);
+    await refresh();
+  };
+
+  const declineGroupInvite = async (invitationId: number) => {
+    await declineGroupInvitation(invitationId);
+    await refresh();
   };
 
 
@@ -310,12 +356,19 @@ function Notifications({ onOpenFriends }: Props) {
                         fontSize="small"
                       />
                     )
-                    : (
-                      <EventAvailableIcon
-                        color="primary"
-                        fontSize="small"
-                      />
-                    )}
+                    : notification.kind === 'group-invitation'
+                      ? (
+                        <GroupAddIcon
+                          color="primary"
+                          fontSize="small"
+                        />
+                      )
+                      : (
+                        <EventAvailableIcon
+                          color="primary"
+                          fontSize="small"
+                        />
+                      )}
 
                 </ListItemIcon>
 
@@ -331,6 +384,28 @@ function Notifications({ onOpenFriends }: Props) {
                     },
                   }}
                 />
+
+                {notification.kind === 'group-invitation' && notification.invitationId && (
+                  <Box
+                    sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, ml: 1 }}
+                    onClick={(event) => event.stopPropagation()}
+                  >
+                    <Button
+                      size="small"
+                      variant="contained"
+                      onClick={() => void acceptGroupInvite(notification.invitationId!)}
+                    >
+                      Join
+                    </Button>
+                    <Button
+                      size="small"
+                      color="inherit"
+                      onClick={() => void declineGroupInvite(notification.invitationId!)}
+                    >
+                      Decline
+                    </Button>
+                  </Box>
+                )}
 
                 {!isRead && (
                   <Typography

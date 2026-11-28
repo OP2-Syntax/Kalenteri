@@ -3,8 +3,10 @@ package hh.syntax.calendar.controller;
 import hh.syntax.calendar.dto.EventRequest;
 import hh.syntax.calendar.dto.EventResponse;
 import hh.syntax.calendar.dto.UserDto;
+import hh.syntax.calendar.model.CalendarGroup;
 import hh.syntax.calendar.model.Event;
 import hh.syntax.calendar.model.User;
+import hh.syntax.calendar.repository.CalendarGroupRepository;
 import hh.syntax.calendar.repository.EventRepository;
 import hh.syntax.calendar.repository.UserRepository;
 import org.springframework.http.ResponseEntity;
@@ -23,10 +25,13 @@ public class EventController {
 
     private final EventRepository eventRepository;
     private final UserRepository userRepository;
+    private final CalendarGroupRepository groupRepository;
 
-    public EventController(EventRepository eventRepository, UserRepository userRepository) {
+    public EventController(EventRepository eventRepository, UserRepository userRepository,
+                           CalendarGroupRepository groupRepository) {
         this.eventRepository = eventRepository;
         this.userRepository = userRepository;
+        this.groupRepository = groupRepository;
     }
 
     // hakee kirjautuneen käyttäjän Authentication-objektista
@@ -36,7 +41,10 @@ public class EventController {
     }
 
     private EventResponse toResponse(Event event, User currentUser) {
-        List<UserDto> participants = event.getParticipants().stream()
+        Set<User> eventParticipants = new HashSet<>(event.getParticipants());
+        event.getGroups().forEach(group -> eventParticipants.addAll(group.getMembers()));
+        eventParticipants.remove(event.getOwner());
+        List<UserDto> participants = eventParticipants.stream()
                 .map(user -> new UserDto(user.getId(), user.getUsername()))
                 .sorted(Comparator.comparing(UserDto::username, String.CASE_INSENSITIVE_ORDER))
                 .toList();
@@ -75,6 +83,26 @@ public class EventController {
         return participants;
     }
 
+    private boolean resolveGroupParticipants(User owner, List<Long> groupIds,
+                                             Set<User> participants, Set<CalendarGroup> groups) {
+        if (groupIds == null) {
+            return true;
+        }
+        for (Long groupId : groupIds) {
+            if (groupId == null) {
+                continue;
+            }
+            CalendarGroup group = groupRepository.findById(groupId).orElse(null);
+            if (group == null || !group.getMembers().contains(owner)) {
+                return false;
+            }
+            groups.add(group);
+            participants.addAll(group.getMembers());
+        }
+        participants.remove(owner);
+        return true;
+    }
+
     // GET /api/events — hakee vain kirjautuneen käyttäjän omat tapahtumat
     @GetMapping
     public List<Event> getAllEvents(Authentication authentication) {
@@ -93,13 +121,19 @@ public class EventController {
 
     // GET /api/events/5 — hakee yhden tapahtuman id:n perusteella
     @GetMapping("/{id}")
+    @Transactional(readOnly = true)
     public ResponseEntity<Event> getEventById(@PathVariable Long id, Authentication authentication) {
         User currentUser = getCurrentUser(authentication);
         return eventRepository.findById(id)
-                .filter(event -> event.getOwner().getId().equals(currentUser.getId())
-                        || event.getParticipants().contains(currentUser))
+                .filter(event -> isEventMember(event, currentUser))
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    private boolean isEventMember(Event event, User user) {
+        return event.getOwner().getId().equals(user.getId())
+                || event.getParticipants().contains(user)
+                || event.getGroups().stream().anyMatch(group -> group.getMembers().contains(user));
     }
 
     // POST /api/events — luo uuden tapahtuman, owner asetetaan kirjautuneesta käyttäjästä
@@ -120,6 +154,10 @@ public class EventController {
         if (participants == null) {
             return ResponseEntity.badRequest().build();
         }
+        Set<CalendarGroup> groups = new HashSet<>();
+        if (!resolveGroupParticipants(currentUser, request.groupIds(), participants, groups)) {
+            return ResponseEntity.badRequest().build();
+        }
 
         Event event = new Event();
         event.setTitle(request.title());
@@ -129,6 +167,7 @@ public class EventController {
         event.setColor(request.color());
         event.setOwner(currentUser);
         event.setParticipants(participants);
+        event.setGroups(groups);
         return ResponseEntity.ok(toResponse(eventRepository.save(event), currentUser));
     }
 
@@ -179,6 +218,15 @@ public class EventController {
             if (participants == null) {
                 return ResponseEntity.badRequest().build();
             }
+            event.setParticipants(participants);
+        }
+        if (request.groupIds() != null) {
+            Set<User> participants = new HashSet<>(event.getParticipants());
+            Set<CalendarGroup> groups = new HashSet<>();
+            if (!resolveGroupParticipants(currentUser, request.groupIds(), participants, groups)) {
+                return ResponseEntity.badRequest().build();
+            }
+            event.setGroups(groups);
             event.setParticipants(participants);
         }
 

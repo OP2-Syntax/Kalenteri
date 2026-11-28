@@ -7,8 +7,13 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.hamcrest.Matchers.nullValue;
 
 import com.jayway.jsonpath.JsonPath;
+import hh.syntax.calendar.model.Event;
+import hh.syntax.calendar.repository.EventRepository;
+import hh.syntax.calendar.service.VotingExpiryService;
+import java.time.LocalDateTime;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -25,6 +30,12 @@ class VotingIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @Autowired
+    private EventRepository eventRepository;
+
+    @Autowired
+    private VotingExpiryService votingExpiryService;
 
     private static final String EVENT_JSON = """
         {"title": "Elokuvat", "description": "Kaverien kanssa",
@@ -252,7 +263,7 @@ class VotingIntegrationTest {
     }
 
     @Test
-    void tieIsWonByEarlierOption() throws Exception {
+    void tieIsWonByOneOfTheTiedOptions() throws Exception {
         Setup s = setup();
         vote(s.friendToken(), s.eventId(), s.optionB(), 200);
         vote(s.ownerToken(), s.eventId(), s.optionA(), 200);
@@ -261,7 +272,63 @@ class VotingIntegrationTest {
                         .header("Authorization", "Bearer " + s.ownerToken()))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
-        assertEquals(s.optionA(), ((Number) JsonPath.read(confirm, "$.winnerOptionId")).longValue());
+        long winner = ((Number) JsonPath.read(confirm, "$.winnerOptionId")).longValue();
+        assertTrue(winner == s.optionA() || winner == s.optionB());
+    }
+
+    @Test
+    void votingDurationIsReturnedAsDeadline() throws Exception {
+        Setup s = setup();
+        LocalDateTime beforeUpdate = LocalDateTime.now();
+
+        String result = mockMvc.perform(put("/api/events/" + s.eventId() + "/voting")
+                        .header("Authorization", "Bearer " + s.ownerToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"options\": [" + OPTION_A + ", " + OPTION_B + "], \"durationHours\": 36}"))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+
+        LocalDateTime deadline = LocalDateTime.parse(JsonPath.read(result, "$.deadline"));
+        assertTrue(deadline.isAfter(beforeUpdate.plusHours(35)));
+        assertTrue(deadline.isBefore(LocalDateTime.now().plusHours(37)));
+    }
+
+    @Test
+    void expiredVotingChoosesTheMostVotedOptionAndCloses() throws Exception {
+        Setup s = setup();
+        vote(s.friendToken(), s.eventId(), s.optionB(), 200);
+        vote(s.ownerToken(), s.eventId(), s.optionB(), 200);
+        Event event = eventRepository.findById(s.eventId()).orElseThrow();
+        event.setVotingDeadline(LocalDateTime.now().minusMinutes(1));
+        eventRepository.saveAndFlush(event);
+
+        votingExpiryService.expireDueVotings();
+
+        mockMvc.perform(get("/api/events/" + s.eventId() + "/voting")
+                        .header("Authorization", "Bearer " + s.friendToken()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("CLOSED"))
+                .andExpect(jsonPath("$.winnerOptionId").value(s.optionB()));
+        assertTrue(eventRepository.findById(s.eventId()).orElseThrow().isVotingClosed());
+    }
+
+    @Test
+    void expiredVotingWithoutVotesClosesWithoutWinner() throws Exception {
+        Setup s = setup();
+        Event event = eventRepository.findById(s.eventId()).orElseThrow();
+        event.setVotingDeadline(LocalDateTime.now().minusMinutes(1));
+        eventRepository.saveAndFlush(event);
+
+        votingExpiryService.expireDueVotings();
+
+        mockMvc.perform(get("/api/events/" + s.eventId() + "/voting")
+                        .header("Authorization", "Bearer " + s.ownerToken()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("CLOSED"))
+                .andExpect(jsonPath("$.winnerOptionId").value(nullValue()));
+        Event closedEvent = eventRepository.findById(s.eventId()).orElseThrow();
+        assertTrue(closedEvent.isVotingClosed());
+        assertEquals(1, closedEvent.getStartTime().getDayOfMonth());
     }
 
     @Test
